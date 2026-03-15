@@ -10,8 +10,14 @@ import com.sliit.smartcampus.enumtypes.Role;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -23,28 +29,48 @@ public class AuthController {
     private final RoleResolver roleResolver;
     private final PasswordEncoder passwordEncoder;
 
-    // ✅ REGISTER
+    // =========================
+    // REGISTER (SAFE VERSION)
+    // =========================
     @PostMapping("/register")
-    public String register(@Valid @RequestBody User user) {
+    public ResponseEntity<?> register(@Valid @RequestBody User user) {
 
-        // role auto assign (NO CHANGE)
-        Role role = roleResolver.getRoleByEmail(user.getEmail());
-        user.setRole(role);
+        Map<String, String> response = new HashMap<>();
 
-        // hash password (ONLY security fix)
+        // 🔥 check duplicate email (NO DATA CHANGE)
+        if (repo.findByEmail(user.getEmail()).isPresent()) {
+            response.put("message", "Email already exists");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        }
+
+        // 🔥 role assign only if null (NO DATA CHANGE)
+        if (user.getRole() == null) {
+            Role role = roleResolver.getRoleByEmail(user.getEmail());
+            user.setRole(role);
+        }
+
+        // password encryption
         user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         repo.save(user);
 
-        return "Registered as " + role.name();
+        response.put("message", "Registered as " + user.getRole().name());
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // ✅ LOGIN
+    // =========================
+    // LOGIN (SAFE VERSION)
+    // =========================
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody AuthRequest request) {
+    public ResponseEntity<?> login(@Valid @RequestBody AuthRequest request) {
+
+        Map<String, String> response = new HashMap<>();
 
         User user = repo.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+                .orElseThrow(() -> {
+                    throw new RuntimeException("Invalid email or password");
+                });
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new RuntimeException("Invalid email or password");
@@ -54,6 +80,8 @@ public class AuthController {
 
         String token = jwtService.generateToken(user.getEmail());
 
-        return new AuthResponse(token, role.name());
+        AuthResponse authResponse = new AuthResponse(token, role.name());
+
+        return ResponseEntity.ok(authResponse);
     }
 }

@@ -63,7 +63,8 @@ public void onAuthenticationSuccess(HttpServletRequest request,
 
         response.sendRedirect(
                 "http://localhost:5173/login?token=" + token +
-                        "&role=" + user.getRole().name()
+                        "&role=" + user.getRole().name()+
+                        "&email=" + email 
         );
 
     } catch (Exception e) {

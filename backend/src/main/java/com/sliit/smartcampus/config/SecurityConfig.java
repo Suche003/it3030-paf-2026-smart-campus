@@ -1,67 +1,56 @@
 package com.sliit.smartcampus.config;
 
+import com.sliit.smartcampus.service.CustomUserDetailsService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.*;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
 @Configuration
+@EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtFilter;
+    private final JwtAuthFilter jwtAuthFilter;
     private final OAuth2SuccessHandler successHandler;
+    private final CustomUserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-
         http
-            // 🔥 CSRF OFF (REST API)
             .csrf(csrf -> csrf.disable())
-
-            // 🔥 CORS ENABLE
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-            // 🔐 AUTH RULES (NO CHANGE)
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
-                    .anyRequest().authenticated()
+                .requestMatchers("/api/auth/**", "/oauth2/**", "/login/**").permitAll()
+                .anyRequest().authenticated()
             )
-
-            // 🔐 GOOGLE LOGIN
             .oauth2Login(oauth -> oauth.successHandler(successHandler))
-
-            // 🔐 JWT FILTER
-            .addFilterBefore(jwtFilter,
-                    org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // ✅ CORS CONFIG (CLEAN VERSION)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-
         CorsConfiguration config = new CorsConfiguration();
-
-        // frontend origin
         config.setAllowedOrigins(List.of("http://localhost:5173"));
-
-        // allowed methods
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        // allowed headers
         config.setAllowedHeaders(List.of("*"));
-
-        // allow token (important for JWT)
+        config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
-
+        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
         return source;
     }
 }

@@ -8,7 +8,8 @@ public class RoleResolver {
 
     public Role getRoleByEmail(String email) {
 
-        if (email.equals("admin@gmail.com")) {
+        if (email.equals("admin@gmail.com") || 
+            email.equals("admin4@gmail.com")) {
             return Role.ADMIN;
         }
 

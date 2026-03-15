@@ -1,48 +1,53 @@
 package com.sliit.smartcampus.config;
 
+import com.sliit.smartcampus.service.CustomUserDetailsService;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
 
 @Component
-public class JwtAuthFilter implements Filter {
+public class JwtAuthFilter extends OncePerRequestFilter {
 
-    private final JwtService jwtService;
-
-    public JwtAuthFilter(JwtService jwtService) {
-        this.jwtService = jwtService;
-    }
+    @Autowired
+    private JwtService jwtService;
+    
+    @Autowired
+    private CustomUserDetailsService userDetailsService;
 
     @Override
-public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-        throws IOException, ServletException {
+    protected void doFilterInternal(HttpServletRequest request, 
+                                    HttpServletResponse response, 
+                                    FilterChain chain)
+            throws IOException, ServletException {
 
-    HttpServletRequest req = (HttpServletRequest) request;
+        String header = request.getHeader("Authorization");
 
-    String header = req.getHeader("Authorization");
+        try {
+            if (header != null && header.startsWith("Bearer ")) {
+                String token = header.substring(7);
+                String email = jwtService.extractEmail(token);
 
-    try {
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-
-            // 🔥 safe extraction
-            String email = jwtService.extractEmail(token);
-
-            if (email != null) {
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(email, null, null);
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+                    
+                    UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
             }
+        } catch (Exception e) {
+            System.out.println("JWT Auth Error: " + e.getMessage());
+            SecurityContextHolder.clearContext();
         }
-    } catch (Exception e) {
-        // 🔥 IMPORTANT: prevent crash
-        SecurityContextHolder.clearContext();
-    }
 
-    chain.doFilter(request, response);
-}
+        chain.doFilter(request, response);
+    }
 }
