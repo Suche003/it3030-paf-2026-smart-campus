@@ -6,24 +6,27 @@ function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  // ✅ NEW: error state
   const [error, setError] = useState("");
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     const role = params.get("role");
+    const googleEmail = params.get("email"); // 🔥 FIX for Google login
 
-    if (token) {
+    if (token && role) {
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
+
+      // 🔥 FIX: save email from Google login if exists
+      if (googleEmail) {
+        localStorage.setItem("email", googleEmail);
+      }
 
       window.location.href = "/" + role.toLowerCase();
     }
   }, []);
 
-  // ✅ NEW: validation function
   const validate = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -53,43 +56,59 @@ function Login() {
 
   const handleLogin = async () => {
 
-    // ✅ NEW: stop if invalid
     if (!validate()) return;
 
-    const res = await loginUser({ email, password });
+    try {
+      const res = await loginUser({ email, password });
 
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("role", res.data.role);
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("role", res.data.role);
 
-    window.location.href = "/" + res.data.role.toLowerCase();
+      // 🔥 FIX: IMPORTANT FOR NOTIFICATIONS
+      localStorage.setItem("email", email);
+
+      window.location.href = "/" + res.data.role.toLowerCase();
+
+    } catch (err) {
+      setError("Invalid email or password");
+    }
   };
 
   const googleLogin = () => {
-    window.location.href = "http://localhost:8081/oauth2/authorization/google";
+    window.location.href =
+      "http://localhost:8081/oauth2/authorization/google";
   };
 
   return (
     <div className="login-wrapper">
       <div className="login-box">
+
         <h2>Login</h2>
 
-        {/* email */}
         <input
           placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setError("");
+          }}
         />
 
-        {/* password */}
         <input
           type="password"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setError("");
+          }}
         />
 
-        {/* ✅ NEW: error display */}
-        {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
+        {error && (
+          <p style={{ color: "red", marginTop: "10px" }}>
+            {error}
+          </p>
+        )}
 
         <button className="login-btn" onClick={handleLogin}>
           Login
@@ -100,6 +119,7 @@ function Login() {
         <button className="google-btn" onClick={googleLogin}>
           Login with Google
         </button>
+
       </div>
     </div>
   );

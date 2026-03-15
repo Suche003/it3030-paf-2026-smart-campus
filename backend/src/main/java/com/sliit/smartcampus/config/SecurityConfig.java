@@ -19,44 +19,30 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            // 🔥 CSRF OFF (REST API)
             .csrf(csrf -> csrf.disable())
-
-            // 🔥 CORS ENABLE
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-            // 🔐 AUTH RULES (NO CHANGE)
             .authorizeHttpRequests(auth -> auth
-                    .requestMatchers("/api/auth/**", "/oauth2/**").permitAll()
+                    .requestMatchers("/api/auth/**", "/oauth2/**", "/login/**").permitAll()
+                    .requestMatchers("/api/notifications/**").permitAll() // 👈 TEST FIX
                     .anyRequest().authenticated()
             )
-
-            // 🔐 GOOGLE LOGIN
             .oauth2Login(oauth -> oauth.successHandler(successHandler))
-
-            // 🔐 JWT FILTER
             .addFilterBefore(jwtFilter,
-                    org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
+                    org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class
+            );
 
         return http.build();
     }
 
-    // ✅ CORS CONFIG (CLEAN VERSION)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
         CorsConfiguration config = new CorsConfiguration();
 
-        // frontend origin
         config.setAllowedOrigins(List.of("http://localhost:5173"));
-
-        // allowed methods
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        // allowed headers
-        config.setAllowedHeaders(List.of("*"));
-
-        // allow token (important for JWT)
+        config.setAllowedHeaders(List.of("*", "Authorization"));
+        config.setExposedHeaders(List.of("Authorization"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

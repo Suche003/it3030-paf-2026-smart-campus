@@ -78,3 +78,18 @@
     justify-content: center;
   }
 }
+
+.notif-btn {
+  background: transparent;
+  border: 1px solid #fff;
+  color: white;
+  padding: 6px 10px;
+  margin-left: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.notif-btn:hover {
+  background: white;
+  color: black;
+}

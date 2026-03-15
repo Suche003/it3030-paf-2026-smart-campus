@@ -9,6 +9,7 @@ import Admin from "./pages/Admin";
 import Student from "./pages/Student";
 import Lecturer from "./pages/Lecturer";
 import Technician from "./pages/Technician";
+import Notifications from "./pages/Notifications";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
@@ -52,6 +53,13 @@ export default function App() {
               <Admin />
             </ProtectedRoute>
           } />
+            
+            {/* 🔔 Notifications */}
+<Route path="/notifications" element={
+  <ProtectedRoute>
+    <Notifications />
+  </ProtectedRoute>
+} />
 
           <Route path="/student" element={
             <ProtectedRoute role="STUDENT">
