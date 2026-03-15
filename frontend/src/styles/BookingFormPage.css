@@ -1,0 +1,363 @@
+/* BookingFormPage.css - Complete Styles */
+
+.booking-form-container {
+    width: min(760px, 100%);
+    margin: 0 auto;
+    animation: fadeUp 0.45s ease both;
+    padding: 20px;
+}
+
+/* Header Styles */
+.booking-form-header {
+    padding: 32px;
+    border-radius: 32px;
+    background: linear-gradient(135deg, rgba(255, 43, 106, 0.2), rgba(124, 44, 255, 0.24));
+    border: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+    margin-bottom: 28px;
+    text-align: center;
+}
+
+.booking-form-header h1 {
+    margin: 0;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 900;
+    background: linear-gradient(90deg, #ff2f92, #8b3dff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.booking-form-header p {
+    margin: 12px 0 0;
+    color: var(--muted);
+    font-size: 1rem;
+}
+
+/* Form Card */
+.booking-form-card {
+    padding: 32px;
+    border-radius: 32px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 700;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.065);
+    color: var(--text);
+    font-size: 1rem;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: rgba(255, 43, 106, 0.5);
+    box-shadow: 0 0 0 3px rgba(255, 43, 106, 0.1);
+    background: rgba(255, 255, 255, 0.085);
+}
+
+.form-group input:hover,
+.form-group select:hover,
+.form-group textarea:hover {
+    background: rgba(255, 255, 255, 0.075);
+}
+
+.form-group select option {
+    background: #12121c;
+    color: var(--text);
+    padding: 10px;
+}
+
+.form-group textarea {
+    resize: vertical;
+    font-family: inherit;
+}
+
+/* Hint text */
+.hint {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 6px;
+}
+
+/* Time Row - Two columns */
+.time-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 8px;
+}
+
+.time-row .form-group {
+    margin-bottom: 0;
+}
+
+/* Check Availability Button */
+.check-btn {
+    width: 100%;
+    padding: 14px 20px;
+    margin: 16px 0;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.check-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    border-color: rgba(255, 43, 106, 0.3);
+}
+
+.check-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Time Error Message */
+.time-error-msg {
+    padding: 12px 16px;
+    background: rgba(220, 53, 69, 0.15);
+    border: 1px solid rgba(220, 53, 69, 0.3);
+    border-radius: 12px;
+    color: #ff8ca8;
+    font-size: 0.9rem;
+    margin: 10px 0;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Availability Messages */
+.availability-msg {
+    padding: 14px 20px;
+    border-radius: 14px;
+    margin: 16px 0;
+    text-align: center;
+    font-weight: 600;
+    animation: slideDown 0.3s ease;
+}
+
+.availability-msg.available {
+    background: rgba(95, 255, 168, 0.1);
+    border: 1px solid rgba(95, 255, 168, 0.3);
+    color: #b8ffd4;
+}
+
+.availability-msg.not-available {
+    background: rgba(255, 43, 106, 0.1);
+    border: 1px solid rgba(255, 43, 106, 0.3);
+    color: #ffc0cf;
+}
+
+/* Submit Button */
+.submit-btn {
+    width: 100%;
+    padding: 16px 24px;
+    margin-top: 16px;
+    border-radius: 14px;
+    background: linear-gradient(90deg, #ff2f92, #8b3dff);
+    border: none;
+    color: white;
+    font-weight: 900;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 8px 20px rgba(255, 47, 146, 0.2);
+}
+
+.submit-btn:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 30px rgba(255, 47, 146, 0.35);
+}
+
+.submit-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Animations */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .booking-form-container {
+        padding: 10px;
+    }
+    
+    .booking-form-header {
+        padding: 24px;
+    }
+    
+    .booking-form-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .booking-form-card {
+        padding: 20px;
+    }
+    
+    .time-row {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        padding: 12px 16px;
+    }
+    
+    .submit-btn {
+        padding: 14px 20px;
+        font-size: 1rem;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    .booking-form-card {
+        background: rgba(0, 0, 0, 0.3);
+    }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 43, 106, 0.5);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 43, 106, 0.7);
+}
+
+/* Loading state styles */
+.loading {
+    position: relative;
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+/* Success/Error toasts (optional) */
+.toast-success {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #28a745;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    animation: slideUp 0.3s ease;
+    z-index: 1000;
+}
+
+.toast-error {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #dc3545;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 12px;
+    animation: slideUp 0.3s ease;
+    z-index: 1000;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Input number spinners hide (optional) */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    opacity: 0.5;
+}
+
+/* Focus visible outline for accessibility */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid #ff2f92;
+    outline-offset: 2px;
+}
+
+/* Add this to existing BookingFormPage.css */
+.availability-msg.warning {
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    color: #ffc107;
+    padding: 12px;
+    border-radius: 12px;
+    text-align: center;
+    margin: 10px 0;
+}
