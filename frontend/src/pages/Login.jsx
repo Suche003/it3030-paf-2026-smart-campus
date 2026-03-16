@@ -8,29 +8,33 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
+  // 🔵 GOOGLE LOGIN REDIRECT HANDLER
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     const role = params.get("role");
-    const googleEmail = params.get("email"); // 🔥 FIX for Google login
+    const googleEmail = params.get("email");
 
     if (token && role) {
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
 
-      // 🔥 FIX: save email from Google login if exists
+      // ✅ SAFE EMAIL HANDLING
       if (googleEmail) {
         localStorage.setItem("email", googleEmail);
+      } else {
+        localStorage.removeItem("email"); // 🔥 avoid old email bug
       }
 
-      window.location.href = "/" + role.toLowerCase();
+      window.location.replace("/" + role.toLowerCase());
     }
   }, []);
 
+  // 🔐 VALIDATION
   const validate = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!email) {
+    if (!email.trim()) {
       setError("Email is required");
       return false;
     }
@@ -54,6 +58,7 @@ function Login() {
     return true;
   };
 
+  // 🔐 NORMAL LOGIN
   const handleLogin = async () => {
 
     if (!validate()) return;
@@ -64,16 +69,17 @@ function Login() {
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
 
-      // 🔥 FIX: IMPORTANT FOR NOTIFICATIONS
+      // ✅ IMPORTANT: store correct email
       localStorage.setItem("email", email);
 
-      window.location.href = "/" + res.data.role.toLowerCase();
+      window.location.replace("/" + res.data.role.toLowerCase());
 
     } catch (err) {
       setError("Invalid email or password");
     }
   };
 
+  // 🔵 GOOGLE LOGIN
   const googleLogin = () => {
     window.location.href =
       "http://localhost:8081/oauth2/authorization/google";
