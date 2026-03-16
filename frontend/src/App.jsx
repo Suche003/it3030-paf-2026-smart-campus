@@ -10,12 +10,19 @@ import Student from "./pages/Student";
 import Lecturer from "./pages/Lecturer";
 import Technician from "./pages/Technician";
 
+// Booking Module Imports
+import CreateBookingPage from './pages/CreateBookingPage';
+import MyBookingsPage from './pages/MyBookingsPage';
+import AdminBookingsPage from './pages/AdminBookingsPage';
+import EditBookingPage from './pages/EditBookingPage';  // ✅ ADD THIS
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
 
 import './styles/App.css'
 
 export default function App() {
+
   return (
     <>
       <Navbar />
@@ -27,7 +34,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* 🔐 Admin Resource Module (NO DATA CHANGE) */}
+          {/* 🔐 Admin Resource Module */}
           <Route path="/admin/resources" element={
             <ProtectedRoute role="ADMIN">
               <AdminResourceListPage />
@@ -43,6 +50,35 @@ export default function App() {
           <Route path="/admin/resources/edit/:id" element={
             <ProtectedRoute role="ADMIN">
               <EditResourcePage />
+            </ProtectedRoute>
+          } />
+
+          {/* ✅ BOOKING MODULE ROUTES */}
+          {/* Create Booking - Any authenticated user */}
+          <Route path="/bookings/new" element={
+            <ProtectedRoute>
+              <CreateBookingPage />
+            </ProtectedRoute>
+          } />
+
+          {/* My Bookings - Any authenticated user */}
+          <Route path="/my-bookings" element={
+            <ProtectedRoute>
+              <MyBookingsPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Edit Booking - Any authenticated user (for PENDING bookings) */}
+          <Route path="/bookings/edit/:id" element={
+            <ProtectedRoute>
+              <EditBookingPage />
+            </ProtectedRoute>
+          } />
+
+          {/* Admin Bookings Management - Admin only */}
+          <Route path="/admin/bookings" element={
+            <ProtectedRoute role="ADMIN">
+              <AdminBookingsPage />
             </ProtectedRoute>
           } />
 
