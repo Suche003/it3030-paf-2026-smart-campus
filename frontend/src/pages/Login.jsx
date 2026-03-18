@@ -6,28 +6,35 @@ function Login() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
-  // ✅ NEW: error state
   const [error, setError] = useState("");
 
+  // 🔵 GOOGLE LOGIN REDIRECT HANDLER
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
     const role = params.get("role");
+    const googleEmail = params.get("email");
 
-    if (token) {
+    if (token && role) {
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
 
-      window.location.href = "/" + role.toLowerCase();
+      // ✅ SAFE EMAIL HANDLING
+      if (googleEmail) {
+        localStorage.setItem("email", googleEmail);
+      } else {
+        localStorage.removeItem("email"); // 🔥 avoid old email bug
+      }
+
+      window.location.replace("/" + role.toLowerCase());
     }
   }, []);
 
-  // ✅ NEW: validation function
+  // 🔐 VALIDATION
   const validate = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!email) {
+    if (!email.trim()) {
       setError("Email is required");
       return false;
     }
@@ -51,45 +58,63 @@ function Login() {
     return true;
   };
 
+  // 🔐 NORMAL LOGIN
   const handleLogin = async () => {
 
-    // ✅ NEW: stop if invalid
     if (!validate()) return;
 
-    const res = await loginUser({ email, password });
+    try {
+      const res = await loginUser({ email, password });
 
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("role", res.data.role);
+      localStorage.setItem("token", res.data.token);
+      localStorage.setItem("role", res.data.role);
 
-    window.location.href = "/" + res.data.role.toLowerCase();
+      // ✅ IMPORTANT: store correct email
+      localStorage.setItem("email", email);
+
+      window.location.replace("/" + res.data.role.toLowerCase());
+
+    } catch (err) {
+      setError("Invalid email or password");
+    }
   };
 
+  // 🔵 GOOGLE LOGIN
   const googleLogin = () => {
-    window.location.href = "http://localhost:8081/oauth2/authorization/google";
+    window.location.href =
+      "http://localhost:8081/oauth2/authorization/google";
   };
 
   return (
     <div className="login-wrapper">
       <div className="login-box">
+
         <h2>Login</h2>
 
-        {/* email */}
         <input
           placeholder="Email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            setError("");
+          }}
         />
 
-        {/* password */}
         <input
           type="password"
           placeholder="Password"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            setError("");
+          }}
         />
 
-        {/* ✅ NEW: error display */}
-        {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
+        {error && (
+          <p style={{ color: "red", marginTop: "10px" }}>
+            {error}
+          </p>
+        )}
 
         <button className="login-btn" onClick={handleLogin}>
           Login
@@ -100,6 +125,7 @@ function Login() {
         <button className="google-btn" onClick={googleLogin}>
           Login with Google
         </button>
+
       </div>
     </div>
   );
