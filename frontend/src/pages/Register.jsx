@@ -48,14 +48,23 @@ function Register() {
 
   const handleSubmit = async () => {
 
-    // ✅ NEW: stop if invalid
-    if (!validate()) return;
+  if (!validate()) return;
 
-    await registerUser(user);
+  try {
+    const res = await registerUser(user);
 
-    alert("Registered Successfully!");
+    alert(res.data.message);   // ✅ backend message show
+
     window.location.href = "/login";
-  };
+
+  } catch (err) {
+
+    // 🔥 IMPORTANT: backend error message display
+    setError(
+      err.response?.data?.message || "Registration failed"
+    );
+  }
+};
 
   return (
     <div className="register-wrapper">
