@@ -1,22 +1,17 @@
-import { Routes, Route, Link } from 'react-router-dom'
-import ResourceListPage from './pages/ResourceListPage'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import AdminResourceListPage from './pages/AdminResourceListPage'
 import AddResourcePage from './pages/AddResourcePage'
 import EditResourcePage from './pages/EditResourcePage'
+import './styles/App.css'
 
 export default function App() {
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif' }}>
-      <h1>Smart Campus - Resource Management</h1>
-
-      <nav style={{ marginBottom: '20px' }}>
-        <Link to="/" style={{ marginRight: '15px' }}>All Resources</Link>
-        <Link to="/add">Add Resource</Link>
-      </nav>
-
+    <div className="app-shell">
       <Routes>
-        <Route path="/" element={<ResourceListPage />} />
-        <Route path="/add" element={<AddResourcePage />} />
-        <Route path="/edit/:id" element={<EditResourcePage />} />
+        <Route path="/" element={<Navigate to="/admin/resources" replace />} />
+        <Route path="/admin/resources" element={<AdminResourceListPage />} />
+        <Route path="/admin/resources/add" element={<AddResourcePage />} />
+        <Route path="/admin/resources/edit/:id" element={<EditResourcePage />} />
       </Routes>
     </div>
   )
