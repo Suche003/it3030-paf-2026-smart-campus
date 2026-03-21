@@ -24,6 +24,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                     .requestMatchers("/api/auth/**", "/oauth2/**", "/login/**").permitAll()
                     .requestMatchers("/api/notifications/**").permitAll() // 👈 TEST FIX
+                    .requestMatchers("/api/profile/**").authenticated()
                     .anyRequest().authenticated()
             )
             .oauth2Login(oauth -> oauth.successHandler(successHandler))

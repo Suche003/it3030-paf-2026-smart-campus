@@ -1,15 +1,19 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
+
 import AdminResourceListPage from './pages/AdminResourceListPage'
 import AddResourcePage from './pages/AddResourcePage'
 import EditResourcePage from './pages/EditResourcePage'
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+
 import Admin from "./pages/Admin";
 import Student from "./pages/Student";
 import Lecturer from "./pages/Lecturer";
 import Technician from "./pages/Technician";
+
 import Notifications from "./pages/Notifications";
+import Profile from "./pages/Profile";
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
@@ -28,7 +32,14 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          {/* 🔐 Admin Resource Module (NO DATA CHANGE) */}
+          {/* 🔐 PROFILE (NEW ADD - SAFE) */}
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+
+          {/* 🔐 Admin Resource Module (NO CHANGE) */}
           <Route path="/admin/resources" element={
             <ProtectedRoute role="ADMIN">
               <AdminResourceListPage />
@@ -47,19 +58,19 @@ export default function App() {
             </ProtectedRoute>
           } />
 
-          {/* 🔐 Dashboards */}
+          {/* 🔐 Dashboards (NO CHANGE) */}
           <Route path="/admin" element={
             <ProtectedRoute role="ADMIN">
               <Admin />
             </ProtectedRoute>
           } />
-            
-            {/* 🔔 Notifications */}
-<Route path="/notifications" element={
-  <ProtectedRoute>
-    <Notifications />
-  </ProtectedRoute>
-} />
+
+          {/* 🔔 Notifications */}
+          <Route path="/notifications" element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          } />
 
           <Route path="/student" element={
             <ProtectedRoute role="STUDENT">

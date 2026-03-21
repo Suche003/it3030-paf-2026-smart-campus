@@ -18,12 +18,18 @@ function Navbar() {
 
   const logout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("email");
+    localStorage.removeItem("role");
     setIsLoggedIn(false);
     navigate("/");
   };
 
   const goNotifications = () => {
     navigate("/notifications");
+  };
+
+  const goProfile = () => {
+    navigate("/profile");
   };
 
   return (
@@ -35,6 +41,7 @@ function Navbar() {
 
       <div className="nav-links">
 
+        {/* 🔓 NOT LOGGED IN */}
         {!isLoggedIn && (
           <>
             <Link to="/">Login</Link>
@@ -42,12 +49,20 @@ function Navbar() {
           </>
         )}
 
+        {/* 🔐 LOGGED IN */}
         {isLoggedIn && (
           <>
+            {/* 🔔 Notifications */}
             <button onClick={goNotifications} className="notif-btn">
               🔔 Notifications
             </button>
 
+            {/* 👤 PROFILE BUTTON (NEW) */}
+            <button onClick={goProfile} className="profile-btn">
+              👤 Profile
+            </button>
+
+            {/* 🚪 LOGOUT */}
             <button onClick={logout} className="logout-btn">
               Logout
             </button>
