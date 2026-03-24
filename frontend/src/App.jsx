@@ -6,13 +6,13 @@ import './styles/App.css'
 
 export default function App() {
   return (
-    <div className="app-shell">
+    <main className="admin-module-shell">
       <Routes>
         <Route path="/" element={<Navigate to="/admin/resources" replace />} />
         <Route path="/admin/resources" element={<AdminResourceListPage />} />
         <Route path="/admin/resources/add" element={<AddResourcePage />} />
         <Route path="/admin/resources/edit/:id" element={<EditResourcePage />} />
       </Routes>
-    </div>
+    </main>
   )
 }
