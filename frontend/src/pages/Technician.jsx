@@ -1,15 +1,12 @@
-// frontend/src/pages/Technician.jsx
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { getAllBookings } from '../services/bookingService';
 import './Technician.css';
 
 function Technician() {
-  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [viewMode, setViewMode] = useState('table'); // 'table' or 'calendar'
+  const [viewMode, setViewMode] = useState('table');
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [filterStatus, setFilterStatus] = useState('ALL');
@@ -22,7 +19,9 @@ function Technician() {
     setLoading(true);
     try {
       const response = await getAllBookings();
-      setBookings(response.data || []);
+      const rawData = response.data || [];
+      const sorted = [...rawData].sort((a, b) => b.id - a.id);
+      setBookings(sorted);
     } catch (err) {
       console.error(err);
       setError('Failed to load bookings');
@@ -40,13 +39,12 @@ function Technician() {
       PENDING: { class: 'status-pending', icon: '⏳', label: 'Pending' },
       APPROVED: { class: 'status-approved', icon: '✅', label: 'Approved' },
       REJECTED: { class: 'status-rejected', icon: '❌', label: 'Rejected' },
-      CANCELLED: { class: 'status-cancelled', icon: '🚫', label: 'Cancelled' },
+      CANCELLED: { class: 'status-cancelled', icon: '🚫', label: 'Cancelled' }
     };
     const c = config[status] || { class: '', icon: '📋', label: status };
     return <span className={`status-badge ${c.class}`}>{c.icon} {c.label}</span>;
   };
 
-  // Filter logic
   const filteredBookings = bookings.filter(b => {
     if (filterStatus !== 'ALL' && b.status !== filterStatus) return false;
     if (searchTerm) {
@@ -89,7 +87,6 @@ function Technician() {
         if(dayBookings.some(b=>b.status==='PENDING')) dotColor='#ffc107';
         else if(dayBookings.some(b=>b.status==='APPROVED')) dotColor='#4caf50';
         else if(dayBookings.some(b=>b.status==='REJECTED')) dotColor='#f44336';
-        else dotColor='#9e9e9e';
       }
       cells.push(
         <div key={d} className={`cal-day ${has?'has-booking':''} ${isToday?'today':''}`} onClick={() => has && setSelectedBooking(dayBookings[0])}>
@@ -105,6 +102,7 @@ function Technician() {
     total: bookings.length,
     pending: bookings.filter(b=>b.status==='PENDING').length,
     approved: bookings.filter(b=>b.status==='APPROVED').length,
+    rejected: bookings.filter(b=>b.status==='REJECTED').length
   };
 
   if(loading) return <div className="technician-dashboard loading-state">Loading bookings...</div>;
@@ -112,104 +110,64 @@ function Technician() {
 
   return (
     <div className="technician-dashboard">
-      {/* Header */}
       <div className="dashboard-header">
-        <div>
-          <h1>🔧 Technician Dashboard</h1>
-          <p>Welcome, {userName} ({userEmail})</p>
-          <span className="subtitle">View all campus resource bookings</span>
-        </div>
-        <div className="stats-badge">
-          <span>📋 Total Bookings: {stats.total}</span>
-        </div>
+        <div><h1>🔧 Technician Dashboard</h1><p>Welcome, {userName} ({userEmail})</p><span className="subtitle">View all campus resource bookings</span></div>
+        <div className="stats-badge"><span>📋 Total Bookings: {stats.total}</span></div>
       </div>
 
-      {/* Filters */}
       <div className="filters-bar">
         <div className="status-filters">
           <button className={filterStatus==='ALL'?'active':''} onClick={()=>setFilterStatus('ALL')}>All ({stats.total})</button>
           <button className={filterStatus==='PENDING'?'active':''} onClick={()=>setFilterStatus('PENDING')}>Pending ({stats.pending})</button>
           <button className={filterStatus==='APPROVED'?'active':''} onClick={()=>setFilterStatus('APPROVED')}>Approved ({stats.approved})</button>
-          <button className={filterStatus==='REJECTED'?'active':''} onClick={()=>setFilterStatus('REJECTED')}>Rejected ({bookings.filter(b=>b.status==='REJECTED').length})</button>
+          <button className={filterStatus==='REJECTED'?'active':''} onClick={()=>setFilterStatus('REJECTED')}>Rejected ({stats.rejected})</button>
         </div>
         <input type="text" placeholder="🔍 Search by resource, user, purpose..." value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} className="search-input" />
       </div>
 
-      {/* View Toggle */}
       <div className="view-toggle">
         <button className={viewMode==='table'?'active':''} onClick={()=>setViewMode('table')}>📋 Table View</button>
         <button className={viewMode==='calendar'?'active':''} onClick={()=>setViewMode('calendar')}>📅 Calendar View</button>
       </div>
 
-      {/* TABLE VIEW */}
       {viewMode === 'table' && (
-        filteredBookings.length === 0 ? (
-          <div className="empty-state">No bookings match your filters.</div>
-        ) : (
-          <div className="table-container">
-            <table className="bookings-table">
-              <thead>
-                <tr><th>ID</th><th>Resource</th><th>User</th><th>Date</th><th>Time</th><th>Purpose</th><th>Status</th></tr>
-              </thead>
-              <tbody>
-                {filteredBookings.map(b => (
-                  <tr key={b.id} onClick={() => setSelectedBooking(b)} style={{cursor:'pointer'}}>
-                    <td>#{b.id}</td>
-                    <td><strong>{b.resourceName}</strong></td>
-                    <td>{b.userEmail || `User ${b.userId}`}</td>
-                    <td>{b.bookingDate}</td>
-                    <td>{b.startTime} - {b.endTime}</td>
-                    <td>{b.purpose?.substring(0,40)}</td>
-                    <td>{getStatusBadge(b.status)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )
-      )}
-
-      {/* CALENDAR VIEW */}
-      {viewMode === 'calendar' && (
-        <div className="calendar-wrapper">
-          <div className="cal-nav">
-            <button onClick={()=>changeMonth(-1)}>◀ Previous</button>
-            <h3>{currentDate.toLocaleString('default',{month:'long', year:'numeric'})}</h3>
-            <button onClick={()=>changeMonth(1)}>Next ▶</button>
-          </div>
-          <div className="cal-weekdays">
-            {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=><div key={d} className="cal-weekday">{d}</div>)}
-          </div>
-          <div className="cal-grid">{renderCalendar()}</div>
-          <div className="cal-legend">
-            <span><span className="legend-dot pending"></span> Pending</span>
-            <span><span className="legend-dot approved"></span> Approved</span>
-            <span><span className="legend-dot rejected"></span> Rejected</span>
-          </div>
+        filteredBookings.length === 0 ? <div className="empty-state">No bookings match your filters.</div> :
+        <div className="table-container">
+          <table className="bookings-table">
+            <thead><tr><th>ID</th><th>Resource</th><th>User</th><th>Date</th><th>Time</th><th>Purpose</th><th>Status</th></tr></thead>
+            <tbody>
+              {filteredBookings.map(b => (
+                <tr key={b.id} onClick={() => setSelectedBooking(b)} style={{cursor:'pointer'}}>
+                  <td>#{b.id}</td><td><strong>{b.resourceName}</strong></td><td>{b.userEmail || `User ${b.userId}`}</td>
+                  <td>{b.bookingDate}</td><td>{b.startTime} - {b.endTime}</td><td>{b.purpose?.substring(0,40)}</td><td>{getStatusBadge(b.status)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {/* Modal for details */}
+      {viewMode === 'calendar' && (
+        <div className="calendar-wrapper">
+          <div className="cal-nav"><button onClick={()=>changeMonth(-1)}>◀ Previous</button><h3>{currentDate.toLocaleString('default',{month:'long', year:'numeric'})}</h3><button onClick={()=>changeMonth(1)}>Next ▶</button></div>
+          <div className="cal-weekdays">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=><div key={d} className="cal-weekday">{d}</div>)}</div>
+          <div className="cal-grid">{renderCalendar()}</div>
+          <div className="cal-legend"><span><span className="legend-dot pending"></span> Pending</span><span><span className="legend-dot approved"></span> Approved</span><span><span className="legend-dot rejected"></span> Rejected</span></div>
+        </div>
+      )}
+
       {selectedBooking && (
         <div className="modal-overlay" onClick={()=>setSelectedBooking(null)}>
           <div className="modal-content" onClick={e=>e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>📅 Booking Details</h3>
-              <button className="modal-close" onClick={()=>setSelectedBooking(null)}>✕</button>
-            </div>
+            <div className="modal-header"><h3>📅 Booking Details</h3><button className="modal-close" onClick={()=>setSelectedBooking(null)}>✕</button></div>
             <div className="modal-body">
-              <p><strong>Resource:</strong> {selectedBooking.resourceName}</p>
-              <p><strong>User:</strong> {selectedBooking.userEmail || `User ${selectedBooking.userId}`}</p>
-              <p><strong>Date:</strong> {selectedBooking.bookingDate}</p>
-              <p><strong>Time:</strong> {selectedBooking.startTime} - {selectedBooking.endTime}</p>
-              <p><strong>Purpose:</strong> {selectedBooking.purpose}</p>
-              <p><strong>Attendees:</strong> {selectedBooking.attendees || 1}</p>
+              <p><strong>Resource:</strong> {selectedBooking.resourceName}</p><p><strong>User:</strong> {selectedBooking.userEmail || `User ${selectedBooking.userId}`}</p>
+              <p><strong>Date:</strong> {selectedBooking.bookingDate}</p><p><strong>Time:</strong> {selectedBooking.startTime} - {selectedBooking.endTime}</p>
+              <p><strong>Purpose:</strong> {selectedBooking.purpose}</p><p><strong>Attendees:</strong> {selectedBooking.attendees || 1}</p>
               <p><strong>Status:</strong> {getStatusBadge(selectedBooking.status)}</p>
               {selectedBooking.rejectReason && <p><strong>Rejection Reason:</strong> {selectedBooking.rejectReason}</p>}
             </div>
-            <div className="modal-footer">
-              <button className="modal-close-btn" onClick={()=>setSelectedBooking(null)}>Close</button>
-            </div>
+            <div className="modal-footer"><button className="modal-close-btn" onClick={()=>setSelectedBooking(null)}>Close</button></div>
           </div>
         </div>
       )}
