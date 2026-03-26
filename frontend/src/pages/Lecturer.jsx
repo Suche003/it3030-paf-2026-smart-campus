@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getAllBookings } from '../services/bookingService';
 import './Lecturer.css';
 
 function Lecturer() {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -33,6 +35,10 @@ function Lecturer() {
   useEffect(() => {
     loadBookings();
   }, []);
+
+  const handleNewBooking = () => {
+    navigate('/bookings/new');
+  };
 
   const getStatusBadge = (status) => {
     const config = {
@@ -69,14 +75,7 @@ function Lecturer() {
     return bookings.filter(b => b.bookingDate === dateStr);
   };
   const changeMonth = (delta) => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + delta, 1));
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'APPROVED': return '#4caf50';
-      case 'PENDING': return '#ffc107';
-      case 'REJECTED': return '#f44336';
-      default: return '#9e9e9e';
-    }
-  };
+  
   const renderCalendar = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -118,8 +117,19 @@ function Lecturer() {
   return (
     <div className="lecturer-dashboard">
       <div className="dashboard-header">
-        <div><h1>📚 Lecturer Dashboard</h1><p>Welcome, {userName} ({userEmail})</p><span className="subtitle">View all campus resource bookings</span></div>
-        <div className="stats-badge"><span>📋 Total: {stats.total} | ✅ Approved: {stats.approved}</span></div>
+        <div>
+          <h1>📚 Lecturer Dashboard</h1>
+          <p>Welcome, {userName} ({userEmail})</p>
+          <span className="subtitle">View all campus resource bookings</span>
+        </div>
+        <div className="header-buttons">
+          <button className="new-booking-btn" onClick={handleNewBooking}>
+            + New Booking
+          </button>
+          <div className="stats-badge">
+            <span>📋 Total: {stats.total} | ✅ Approved: {stats.approved}</span>
+          </div>
+        </div>
       </div>
 
       <div className="filters-bar">
