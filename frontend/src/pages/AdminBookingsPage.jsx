@@ -11,7 +11,7 @@ export default function AdminBookingsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
-  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(true); // default open
   const [successMessage, setSuccessMessage] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
 
@@ -37,12 +37,27 @@ export default function AdminBookingsPage() {
     loadBookings();
   }, []);
 
-  // Filter and search (rest same as before)
+  // Helper: get today's date in YYYY-MM-DD
+  const getTodayDate = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+
+  // Filter and search
   useEffect(() => {
     let filtered = [...bookings];
+    
+    // Status filter
     if (activeFilter !== 'ALL') {
-      filtered = filtered.filter(b => b.status === activeFilter);
+      if (activeFilter === 'TODAY') {
+        const today = getTodayDate();
+        filtered = filtered.filter(b => b.bookingDate === today);
+      } else {
+        filtered = filtered.filter(b => b.status === activeFilter);
+      }
     }
+    
+    // Search term
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(b => 
@@ -101,17 +116,22 @@ export default function AdminBookingsPage() {
     };
     const config = statusConfig[status] || { class: '', icon: '📋', label: status };
     return (
-      <span className={`status-badge ${config.class}`} title={status === 'REJECTED' ? 'Rejected' : ''}>
+      <span className={`status-badge ${config.class}`}>
         {config.icon} {config.label}
       </span>
     );
   };
 
-  const getCount = (status) => {
-    if (status === 'ALL') return bookings.length;
-    return bookings.filter(b => b.status === status).length;
+  const getCount = (filterType) => {
+    if (filterType === 'ALL') return bookings.length;
+    if (filterType === 'TODAY') {
+      const today = getTodayDate();
+      return bookings.filter(b => b.bookingDate === today).length;
+    }
+    return bookings.filter(b => b.status === filterType).length;
   };
 
+  // Enhanced Analytics
   const analytics = {
     total: bookings.length,
     approved: bookings.filter(b => b.status === 'APPROVED').length,
@@ -120,7 +140,22 @@ export default function AdminBookingsPage() {
     cancelled: bookings.filter(b => b.status === 'CANCELLED').length,
     approvalRate: bookings.length > 0 
       ? Math.round((bookings.filter(b => b.status === 'APPROVED').length / bookings.length) * 100)
-      : 0
+      : 0,
+    todayBookings: bookings.filter(b => b.bookingDate === getTodayDate()).length,
+    // Most popular resource
+    topResource: (() => {
+      const resourceCount = {};
+      bookings.forEach(b => {
+        if (b.resourceName) {
+          resourceCount[b.resourceName] = (resourceCount[b.resourceName] || 0) + 1;
+        }
+      });
+      let top = { name: 'None', count: 0 };
+      Object.entries(resourceCount).forEach(([name, count]) => {
+        if (count > top.count) top = { name, count };
+      });
+      return top;
+    })()
   };
 
   if (loading) {
@@ -172,7 +207,9 @@ export default function AdminBookingsPage() {
             <div className="stat-card pending"><div className="stat-value">{analytics.pending}</div><div className="stat-label">⏳ Pending</div></div>
             <div className="stat-card rejected"><div className="stat-value">{analytics.rejected}</div><div className="stat-label">❌ Rejected</div></div>
             <div className="stat-card cancelled"><div className="stat-value">{analytics.cancelled}</div><div className="stat-label">🚫 Cancelled</div></div>
-            <div className="stat-card rate"><div className="stat-value">{analytics.approvalRate}%</div><div className="stat-label">📊 Approval Rate</div></div>
+            <div className="stat-card rate"><div className="stat-value">{analytics.approvalRate}%</div><div className="stat-label">Approval Rate</div></div>
+            <div className="stat-card today"><div className="stat-value">{analytics.todayBookings}</div><div className="stat-label">📅 Today's Bookings</div></div>
+            <div className="stat-card top-resource"><div className="stat-value" title={analytics.topResource.name}>{analytics.topResource.name.length > 12 ? analytics.topResource.name.substring(0,12)+'..' : analytics.topResource.name}</div><div className="stat-label">🏆 Most Booked</div></div>
           </div>
         </div>
       )}
@@ -180,6 +217,7 @@ export default function AdminBookingsPage() {
       <div className="filter-section">
         <div className="filter-buttons">
           <button className={`filter-chip ${activeFilter === 'ALL' ? 'active' : ''}`} onClick={() => setActiveFilter('ALL')}>All <span className="count">{getCount('ALL')}</span></button>
+          <button className={`filter-chip ${activeFilter === 'TODAY' ? 'active' : ''}`} onClick={() => setActiveFilter('TODAY')}>📅 Today <span className="count">{getCount('TODAY')}</span></button>
           <button className={`filter-chip pending ${activeFilter === 'PENDING' ? 'active' : ''}`} onClick={() => setActiveFilter('PENDING')}>⏳ Pending <span className="count">{getCount('PENDING')}</span></button>
           <button className={`filter-chip approved ${activeFilter === 'APPROVED' ? 'active' : ''}`} onClick={() => setActiveFilter('APPROVED')}>✅ Approved <span className="count">{getCount('APPROVED')}</span></button>
           <button className={`filter-chip rejected ${activeFilter === 'REJECTED' ? 'active' : ''}`} onClick={() => setActiveFilter('REJECTED')}>❌ Rejected <span className="count">{getCount('REJECTED')}</span></button>
@@ -194,6 +232,7 @@ export default function AdminBookingsPage() {
       <div className="results-info">
         <span>📋 Showing {filteredBookings.length} of {bookings.length} bookings</span>
         {searchTerm && <span className="search-term"> matching "{searchTerm}"</span>}
+        {activeFilter === 'TODAY' && <span className="search-term"> (Today only)</span>}
       </div>
 
       {filteredBookings.length === 0 ? (
@@ -201,7 +240,9 @@ export default function AdminBookingsPage() {
       ) : (
         <div className="table-container">
           <table className="bookings-table">
-            <thead><tr><th>ID</th><th>User Email</th><th>Resource</th><th>Date</th><th>Time</th><th>Purpose</th><th>Attendees</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead>
+              <tr><th>ID</th><th>User Email</th><th>Resource</th><th>Date</th><th>Time</th><th>Purpose</th><th>Attendees</th><th>Status</th><th>Actions</th></tr>
+            </thead>
             <tbody>
               {filteredBookings.map((booking) => (
                 <tr key={booking.id} className="booking-row">
