@@ -548,3 +548,20 @@
     font-size: 1.4rem;
   }
 }
+
+/* New styles for today and top resource cards */
+.stat-card.today .stat-value {
+  color: #ff9800;
+}
+
+.stat-card.top-resource .stat-value {
+  color: #e91e63;
+  font-size: 1.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.filter-chip[class*="TODAY"].active {
+  background: linear-gradient(135deg, #ff9800, #ff5722);
+}
