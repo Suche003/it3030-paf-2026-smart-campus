@@ -45,7 +45,17 @@ public class ResourceController {
     }
 
     @GetMapping("/search")
-    public List<Resource> searchByType(@RequestParam String type) {
+    public List<Resource> search(@RequestParam String keyword) {
+        return service.search(keyword);
+    }
+
+    @GetMapping("/filter/type")
+    public List<Resource> filterByType(@RequestParam String type) {
         return service.findByType(type);
+    }
+
+    @GetMapping("/filter/label")
+    public List<Resource> filterByLabel(@RequestParam String label) {
+        return service.findByLabel(label);
     }
 }

@@ -32,10 +32,13 @@ public class ResourceService {
 
         if (existing != null) {
             existing.setName(resource.getName());
+            existing.setCodeName(resource.getCodeName());
+            existing.setLabel(resource.getLabel());
             existing.setType(resource.getType());
             existing.setCapacity(resource.getCapacity());
             existing.setLocation(resource.getLocation());
             existing.setStatus(resource.getStatus());
+
             return repository.save(existing);
         }
 
@@ -48,5 +51,19 @@ public class ResourceService {
 
     public List<Resource> findByType(String type) {
         return repository.findByType(type);
+    }
+
+    public List<Resource> findByLabel(String label) {
+        return repository.findByLabel(label);
+    }
+
+    public List<Resource> search(String keyword) {
+        return repository
+                .findByNameContainingIgnoreCaseOrTypeContainingIgnoreCaseOrLabelContainingIgnoreCaseOrCodeNameContainingIgnoreCase(
+                        keyword,
+                        keyword,
+                        keyword,
+                        keyword
+                );
     }
 }
