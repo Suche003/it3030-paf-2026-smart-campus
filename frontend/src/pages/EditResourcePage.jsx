@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { getResourceById, updateResource } from '../services/resourceService'
+import {
+  RESOURCE_LABELS,
+  getTypesByLabel
+} from '../utils/resourceOptions'
 import '../styles/ResourceFormPage.css'
 
 export default function EditResourcePage() {
@@ -9,11 +13,15 @@ export default function EditResourcePage() {
 
   const [formData, setFormData] = useState({
     name: '',
+    codeName: '',
+    label: '',
     type: '',
     capacity: '',
     location: '',
     status: 'ACTIVE'
   })
+
+  const availableTypes = getTypesByLabel(formData.label)
 
   useEffect(() => {
     loadResource()
@@ -31,6 +39,16 @@ export default function EditResourcePage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target
+
+    if (name === 'label') {
+      setFormData((prev) => ({
+        ...prev,
+        label: value,
+        type: ''
+      }))
+      return
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: name === 'capacity' ? Number(value) : value
@@ -55,7 +73,9 @@ export default function EditResourcePage() {
       <div className="form-page-header">
         <div>
           <h1 className="form-page-title">Edit Resource</h1>
-          <p className="form-page-subtitle">Update the selected campus resource.</p>
+          <p className="form-page-subtitle">
+            Update campus resource category, type and availability status.
+          </p>
         </div>
 
         <Link to="/admin/resources" className="back-link-btn">
@@ -65,23 +85,82 @@ export default function EditResourcePage() {
 
       <form onSubmit={handleSubmit} className="resource-form-card">
         <div className="form-group">
-          <label>Name</label>
-          <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+          <label>Resource Name</label>
+          <input
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
         </div>
 
         <div className="form-group">
-          <label>Type</label>
-          <input type="text" name="type" value={formData.type} onChange={handleChange} required />
+          <label>Resource Code</label>
+          <input
+            type="text"
+            name="codeName"
+            value={formData.codeName}
+            onChange={handleChange}
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Faculty / Category</label>
+          <select
+            name="label"
+            value={formData.label}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Select faculty/category</option>
+            {RESOURCE_LABELS.map((label) => (
+              <option key={label} value={label}>{label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Resource Type</label>
+          <select
+            name="type"
+            value={formData.type}
+            onChange={handleChange}
+            required
+            disabled={!formData.label}
+          >
+            <option value="">
+              {formData.label ? 'Select resource type' : 'Select category first'}
+            </option>
+
+            {availableTypes.map((type) => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
         </div>
 
         <div className="form-group">
           <label>Capacity</label>
-          <input type="number" name="capacity" value={formData.capacity} onChange={handleChange} required />
+          <input
+            type="number"
+            name="capacity"
+            min="1"
+            value={formData.capacity}
+            onChange={handleChange}
+            required
+          />
         </div>
 
         <div className="form-group">
           <label>Location</label>
-          <input type="text" name="location" value={formData.location} onChange={handleChange} required />
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            required
+          />
         </div>
 
         <div className="form-group">
