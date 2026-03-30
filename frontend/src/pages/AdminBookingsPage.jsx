@@ -11,18 +11,17 @@ export default function AdminBookingsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
-  const [showAnalytics, setShowAnalytics] = useState(true); // default open
+  const [showAnalytics, setShowAnalytics] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
 
-  // Load bookings with sorting (newest first)
+  // Load all bookings from API
   const loadBookings = async () => {
     setLoading(true);
     setError('');
     try {
       const response = await getAllBookings();
       const rawData = response.data || [];
-      // Sort by id descending (newest first)
       const sorted = [...rawData].sort((a, b) => b.id - a.id);
       setBookings(sorted);
     } catch (err) {
@@ -37,17 +36,14 @@ export default function AdminBookingsPage() {
     loadBookings();
   }, []);
 
-  // Helper: get today's date in YYYY-MM-DD
   const getTodayDate = () => {
     const today = new Date();
     return today.toISOString().split('T')[0];
   };
 
-  // Filter and search
+  // Filter and search logic
   useEffect(() => {
     let filtered = [...bookings];
-    
-    // Status filter
     if (activeFilter !== 'ALL') {
       if (activeFilter === 'TODAY') {
         const today = getTodayDate();
@@ -56,8 +52,6 @@ export default function AdminBookingsPage() {
         filtered = filtered.filter(b => b.status === activeFilter);
       }
     }
-    
-    // Search term
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(b => 
@@ -75,14 +69,14 @@ export default function AdminBookingsPage() {
   };
 
   const handleApprove = async (id) => {
-    if (!window.confirm('✅ Are you sure you want to APPROVE this booking?')) return;
+    if (!window.confirm('✅ Approve this booking?')) return;
     setActionLoading(id);
     try {
       await approveBooking(id);
-      showSuccess('✅ Booking approved successfully!');
+      showSuccess('✅ Booking approved!');
       await loadBookings();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to approve booking');
+      alert(err.response?.data?.message || 'Failed to approve');
     } finally {
       setActionLoading(null);
     }
@@ -90,36 +84,174 @@ export default function AdminBookingsPage() {
 
   const handleReject = async (id) => {
     if (!rejectReason.trim()) {
-      alert('❌ Please provide a reason for rejection');
+      alert('❌ Please provide a reason');
       return;
     }
     setActionLoading(id);
     try {
       await rejectBooking(id, rejectReason);
-      showSuccess('❌ Booking rejected successfully!');
+      showSuccess('❌ Booking rejected');
       setShowRejectModal(null);
       setRejectReason('');
       await loadBookings();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to reject booking');
+      alert(err.response?.data?.message || 'Failed to reject');
     } finally {
       setActionLoading(null);
     }
   };
 
+  // ========== EXPORT CSV ==========
+  const handleExportCSV = () => {
+    if (filteredBookings.length === 0) {
+      alert('No bookings to export');
+      return;
+    }
+    const headers = ['ID', 'User Email', 'Resource', 'Date', 'Start Time', 'End Time', 'Purpose', 'Attendees', 'Status', 'Reject Reason'];
+    const rows = filteredBookings.map(b => [
+      b.id,
+      b.userEmail || `User ${b.userId}`,
+      b.resourceName || `Resource ${b.resourceId}`,
+      b.bookingDate,
+      b.startTime,
+      b.endTime,
+      `"${(b.purpose || '').replace(/"/g, '""')}"`,
+      b.attendees || 1,
+      b.status,
+      b.rejectReason || ''
+    ]);
+    const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `bookings_${new Date().toISOString().slice(0,19)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // ========== EXPORT PDF (beautiful print version) ==========
+  const handleExportPDF = () => {
+    if (filteredBookings.length === 0) {
+      alert('No bookings to export');
+      return;
+    }
+    const printWindow = window.open('', '_blank');
+    const title = 'Bookings Report';
+    const date = new Date().toLocaleString();
+    const filterText = activeFilter === 'ALL' ? 'All Bookings' : 
+                       activeFilter === 'TODAY' ? 'Today\'s Bookings' : 
+                       `${activeFilter} Bookings`;
+    
+    let rowsHtml = '';
+    filteredBookings.forEach(b => {
+      rowsHtml += `
+        <td>
+          <td>${b.id}</td>
+          <td>${b.userEmail || `User ${b.userId}`}</td>
+          <td>${b.resourceName || `Resource ${b.resourceId}`}</td>
+          <td>${b.bookingDate}</td>
+          <td>${b.startTime} - ${b.endTime}</td>
+          <td>${b.purpose || ''}</td>
+          <td>${b.attendees || 1}</td>
+          <td>${b.status}</td>
+        </tr>
+      `;
+    });
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Bookings Report</title>
+        <style>
+          body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 40px;
+            color: #333;
+          }
+          h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+          }
+          .report-meta {
+            margin: 20px 0;
+            color: #555;
+            font-size: 14px;
+          }
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+          }
+          th {
+            background: #3498db;
+            color: white;
+            padding: 12px;
+            text-align: left;
+          }
+          td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+          }
+          tr:hover {
+            background: #f5f5f5;
+          }
+          .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            text-align: center;
+            color: #777;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+          }
+          @media print {
+            body { margin: 0; padding: 20px; }
+            .no-print { display: none; }
+          }
+        </style>
+      </head>
+      <body>
+        <h1>📋 Smart Campus - Bookings Report</h1>
+        <div class="report-meta">
+          <strong>Filter:</strong> ${filterText}<br>
+          <strong>Generated:</strong> ${date}<br>
+          <strong>Total Records:</strong> ${filteredBookings.length}
+        </div>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>User</th><th>Resource</th><th>Date</th><th>Time</th><th>Purpose</th><th>Attendees</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+        <div class="footer">
+          Smart Campus Operations Hub - Booking Management Report
+        </div>
+        <script>
+          window.onload = function() { window.print(); setTimeout(() => window.close(), 500); };
+        </script>
+      </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
+
+  // Helper for status badge display
   const getStatusBadge = (status) => {
-    const statusConfig = {
+    const config = {
       PENDING: { class: 'status-pending', icon: '⏳', label: 'Pending' },
       APPROVED: { class: 'status-approved', icon: '✅', label: 'Approved' },
       REJECTED: { class: 'status-rejected', icon: '❌', label: 'Rejected' },
       CANCELLED: { class: 'status-cancelled', icon: '🚫', label: 'Cancelled' }
     };
-    const config = statusConfig[status] || { class: '', icon: '📋', label: status };
-    return (
-      <span className={`status-badge ${config.class}`}>
-        {config.icon} {config.label}
-      </span>
-    );
+    const c = config[status] || { class: '', icon: '📋', label: status };
+    return <span className={`status-badge ${c.class}`}>{c.icon} {c.label}</span>;
   };
 
   const getCount = (filterType) => {
@@ -131,29 +263,20 @@ export default function AdminBookingsPage() {
     return bookings.filter(b => b.status === filterType).length;
   };
 
-  // Enhanced Analytics
+  // Analytics data
   const analytics = {
     total: bookings.length,
     approved: bookings.filter(b => b.status === 'APPROVED').length,
     pending: bookings.filter(b => b.status === 'PENDING').length,
     rejected: bookings.filter(b => b.status === 'REJECTED').length,
     cancelled: bookings.filter(b => b.status === 'CANCELLED').length,
-    approvalRate: bookings.length > 0 
-      ? Math.round((bookings.filter(b => b.status === 'APPROVED').length / bookings.length) * 100)
-      : 0,
+    approvalRate: bookings.length > 0 ? Math.round((bookings.filter(b => b.status === 'APPROVED').length / bookings.length) * 100) : 0,
     todayBookings: bookings.filter(b => b.bookingDate === getTodayDate()).length,
-    // Most popular resource
     topResource: (() => {
       const resourceCount = {};
-      bookings.forEach(b => {
-        if (b.resourceName) {
-          resourceCount[b.resourceName] = (resourceCount[b.resourceName] || 0) + 1;
-        }
-      });
+      bookings.forEach(b => { if (b.resourceName) resourceCount[b.resourceName] = (resourceCount[b.resourceName] || 0) + 1; });
       let top = { name: 'None', count: 0 };
-      Object.entries(resourceCount).forEach(([name, count]) => {
-        if (count > top.count) top = { name, count };
-      });
+      Object.entries(resourceCount).forEach(([name, count]) => { if (count > top.count) top = { name, count }; });
       return top;
     })()
   };
@@ -161,22 +284,18 @@ export default function AdminBookingsPage() {
   if (loading) {
     return (
       <div className="admin-bookings-container">
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Loading bookings...</p>
-        </div>
+        <div className="loading-spinner"></div>
+        <p>Loading bookings...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="admin-bookings-container">
-        <div className="error-state">
-          <span className="error-icon">⚠️</span>
-          <p>{error}</p>
-          <button className="retry-btn" onClick={loadBookings}>Retry</button>
-        </div>
+      <div className="admin-bookings-container error-state">
+        <span className="error-icon">⚠️</span>
+        <p>{error}</p>
+        <button className="retry-btn" onClick={loadBookings}>Retry</button>
       </div>
     );
   }
@@ -184,7 +303,7 @@ export default function AdminBookingsPage() {
   return (
     <div className="admin-bookings-container">
       {successMessage && <div className="success-toast">{successMessage}</div>}
-
+      
       <div className="bookings-header">
         <div className="header-title">
           <h1>📋 Admin - Booking Management</h1>
@@ -194,6 +313,8 @@ export default function AdminBookingsPage() {
           <button className="analytics-btn" onClick={() => setShowAnalytics(!showAnalytics)}>
             {showAnalytics ? '📊 Hide Analytics' : '📊 Show Analytics'}
           </button>
+          <button className="export-btn" onClick={handleExportCSV}>📥 Export CSV</button>
+          <button className="export-pdf-btn" onClick={handleExportPDF}>📄 Export PDF</button>
           <button className="refresh-btn" onClick={loadBookings}>🔄 Refresh</button>
         </div>
       </div>
@@ -202,14 +323,14 @@ export default function AdminBookingsPage() {
         <div className="analytics-panel">
           <h3>📈 Booking Analytics Dashboard</h3>
           <div className="analytics-stats">
-            <div className="stat-card"><div className="stat-value">{analytics.total}</div><div className="stat-label">Total Bookings</div></div>
+            <div className="stat-card"><div className="stat-value">{analytics.total}</div><div className="stat-label">Total</div></div>
             <div className="stat-card approved"><div className="stat-value">{analytics.approved}</div><div className="stat-label">✅ Approved</div></div>
             <div className="stat-card pending"><div className="stat-value">{analytics.pending}</div><div className="stat-label">⏳ Pending</div></div>
             <div className="stat-card rejected"><div className="stat-value">{analytics.rejected}</div><div className="stat-label">❌ Rejected</div></div>
             <div className="stat-card cancelled"><div className="stat-value">{analytics.cancelled}</div><div className="stat-label">🚫 Cancelled</div></div>
             <div className="stat-card rate"><div className="stat-value">{analytics.approvalRate}%</div><div className="stat-label">Approval Rate</div></div>
-            <div className="stat-card today"><div className="stat-value">{analytics.todayBookings}</div><div className="stat-label">📅 Today's Bookings</div></div>
-            <div className="stat-card top-resource"><div className="stat-value" title={analytics.topResource.name}>{analytics.topResource.name.length > 12 ? analytics.topResource.name.substring(0,12)+'..' : analytics.topResource.name}</div><div className="stat-label">🏆 Most Booked</div></div>
+            <div className="stat-card today"><div className="stat-value">{analytics.todayBookings}</div><div className="stat-label">📅 Today</div></div>
+            <div className="stat-card top-resource"><div className="stat-value" title={analytics.topResource.name}>{analytics.topResource.name.length > 12 ? analytics.topResource.name.slice(0,12)+'..' : analytics.topResource.name}</div><div className="stat-label">🏆 Most Booked</div></div>
           </div>
         </div>
       )}
@@ -224,24 +345,43 @@ export default function AdminBookingsPage() {
           <button className={`filter-chip cancelled ${activeFilter === 'CANCELLED' ? 'active' : ''}`} onClick={() => setActiveFilter('CANCELLED')}>🚫 Cancelled <span className="count">{getCount('CANCELLED')}</span></button>
         </div>
         <div className="search-wrapper">
-          <input type="text" placeholder="🔍 Search by user, resource, or purpose..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="search-input" />
+          <input 
+            type="text" 
+            placeholder="🔍 Search by user, resource, or purpose..." 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)} 
+            className="search-input" 
+          />
           {searchTerm && <button className="clear-search" onClick={() => setSearchTerm('')}>✕</button>}
         </div>
       </div>
 
       <div className="results-info">
-        <span>📋 Showing {filteredBookings.length} of {bookings.length} bookings</span>
+        📋 Showing {filteredBookings.length} of {bookings.length} bookings
         {searchTerm && <span className="search-term"> matching "{searchTerm}"</span>}
-        {activeFilter === 'TODAY' && <span className="search-term"> (Today only)</span>}
       </div>
 
       {filteredBookings.length === 0 ? (
-        <div className="empty-state"><div className="empty-emoji">📭</div><h3>No bookings found</h3><p>Try changing your filters or search term</p></div>
+        <div className="empty-state">
+          <div className="empty-emoji">📭</div>
+          <h3>No bookings found</h3>
+          <p>Try changing your filters or search term</p>
+        </div>
       ) : (
         <div className="table-container">
           <table className="bookings-table">
             <thead>
-              <tr><th>ID</th><th>User Email</th><th>Resource</th><th>Date</th><th>Time</th><th>Purpose</th><th>Attendees</th><th>Status</th><th>Actions</th></tr>
+              <tr>
+                <th>ID</th>
+                <th>User Email</th>
+                <th>Resource</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Purpose</th>
+                <th>Attendees</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
             </thead>
             <tbody>
               {filteredBookings.map((booking) => (
@@ -251,14 +391,28 @@ export default function AdminBookingsPage() {
                   <td className="col-resource"><strong>{booking.resourceName || `Resource ${booking.resourceId}`}</strong></td>
                   <td className="col-date">{booking.bookingDate}</td>
                   <td className="col-time">{booking.startTime} - {booking.endTime}</td>
-                  <td className="col-purpose" title={booking.purpose}>{booking.purpose?.length > 35 ? booking.purpose.substring(0,35)+'...' : booking.purpose}</td>
+                  <td className="col-purpose" title={booking.purpose}>
+                    {booking.purpose?.length > 35 ? booking.purpose.substring(0,35)+'...' : booking.purpose}
+                  </td>
                   <td className="col-attendees">{booking.attendees || 1}</td>
                   <td className="col-status">{getStatusBadge(booking.status)}</td>
                   <td className="col-actions">
                     {booking.status === 'PENDING' ? (
                       <div className="action-buttons">
-                        <button className="btn-approve" onClick={() => handleApprove(booking.id)} disabled={actionLoading === booking.id}>{actionLoading === booking.id ? '...' : '✅ Approve'}</button>
-                        <button className="btn-reject" onClick={() => setShowRejectModal(booking.id)} disabled={actionLoading === booking.id}>❌ Reject</button>
+                        <button 
+                          className="btn-approve" 
+                          onClick={() => handleApprove(booking.id)} 
+                          disabled={actionLoading === booking.id}
+                        >
+                          {actionLoading === booking.id ? '...' : '✅ Approve'}
+                        </button>
+                        <button 
+                          className="btn-reject" 
+                          onClick={() => setShowRejectModal(booking.id)} 
+                          disabled={actionLoading === booking.id}
+                        >
+                          ❌ Reject
+                        </button>
                       </div>
                     ) : <span className="no-actions">—</span>}
                   </td>
@@ -272,9 +426,23 @@ export default function AdminBookingsPage() {
       {showRejectModal && (
         <div className="modal-overlay" onClick={() => setShowRejectModal(null)}>
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header"><h3>❌ Reject Booking #{showRejectModal}</h3><button className="modal-close" onClick={() => setShowRejectModal(null)}>✕</button></div>
-            <div className="modal-body"><p>Please provide a reason for rejecting this booking:</p><textarea placeholder="Example: Resource unavailable, Time slot conflict, Invalid request..." value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows="4" autoFocus /></div>
-            <div className="modal-footer"><button className="modal-cancel" onClick={() => { setShowRejectModal(null); setRejectReason(''); }}>Cancel</button><button className="modal-confirm" onClick={() => handleReject(showRejectModal)}>Confirm Reject</button></div>
+            <div className="modal-header">
+              <h3>❌ Reject Booking #{showRejectModal}</h3>
+              <button className="modal-close" onClick={() => setShowRejectModal(null)}>✕</button>
+            </div>
+            <div className="modal-body">
+              <textarea 
+                placeholder="Reason for rejection..." 
+                value={rejectReason} 
+                onChange={(e) => setRejectReason(e.target.value)} 
+                rows="4" 
+                autoFocus 
+              />
+            </div>
+            <div className="modal-footer">
+              <button className="modal-cancel" onClick={() => { setShowRejectModal(null); setRejectReason(''); }}>Cancel</button>
+              <button className="modal-confirm" onClick={() => handleReject(showRejectModal)}>Confirm Reject</button>
+            </div>
           </div>
         </div>
       )}

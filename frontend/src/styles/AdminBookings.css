@@ -61,9 +61,14 @@
 .header-buttons {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
-.analytics-btn, .refresh-btn {
+/* All buttons in header */
+.analytics-btn,
+.export-btn,
+.export-pdf-btn,
+.refresh-btn {
   padding: 10px 20px;
   border-radius: 12px;
   border: none;
@@ -77,13 +82,26 @@
   color: white;
 }
 
+.export-btn {
+  background: linear-gradient(135deg, #2e7d32, #4caf50);
+  color: white;
+}
+
+.export-pdf-btn {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+}
+
 .refresh-btn {
   background: rgba(255,255,255,0.1);
   color: white;
   border: 1px solid rgba(255,255,255,0.2);
 }
 
-.analytics-btn:hover, .refresh-btn:hover {
+.analytics-btn:hover,
+.export-btn:hover,
+.export-pdf-btn:hover,
+.refresh-btn:hover {
   transform: translateY(-2px);
   filter: brightness(1.05);
 }
@@ -138,6 +156,8 @@
 .stat-card.rejected .stat-value { color: #f44336; }
 .stat-card.cancelled .stat-value { color: #9e9e9e; }
 .stat-card.rate .stat-value { color: #a855f7; }
+.stat-card.today .stat-value { color: #ff9800; }
+.stat-card.top-resource .stat-value { color: #e91e63; font-size: 1.2rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* Filter Section */
 .filter-section {
@@ -192,6 +212,11 @@
 .filter-chip.approved.active { background: linear-gradient(135deg, #2e7d32, #4caf50); }
 .filter-chip.rejected.active { background: linear-gradient(135deg, #c62828, #f44336); }
 .filter-chip.cancelled.active { background: linear-gradient(135deg, #616161, #9e9e9e); }
+
+/* Special style for TODAY filter when active */
+.filter-chip[class*="TODAY"].active {
+  background: linear-gradient(135deg, #ff9800, #ff5722);
+}
 
 /* Search */
 .search-wrapper {
@@ -547,21 +572,4 @@
   .stat-value {
     font-size: 1.4rem;
   }
-}
-
-/* New styles for today and top resource cards */
-.stat-card.today .stat-value {
-  color: #ff9800;
-}
-
-.stat-card.top-resource .stat-value {
-  color: #e91e63;
-  font-size: 1.2rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.filter-chip[class*="TODAY"].active {
-  background: linear-gradient(135deg, #ff9800, #ff5722);
 }
