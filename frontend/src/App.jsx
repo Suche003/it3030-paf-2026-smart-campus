@@ -14,7 +14,8 @@ import Technician from "./pages/Technician";
 import CreateBookingPage from './pages/CreateBookingPage';
 import MyBookingsPage from './pages/MyBookingsPage';
 import AdminBookingsPage from './pages/AdminBookingsPage';
-import EditBookingPage from './pages/EditBookingPage';  // ✅ ADD THIS
+import EditBookingPage from './pages/EditBookingPage';  
+import ResourceCalendar from './pages/ResourceCalendar';
 
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
@@ -79,6 +80,14 @@ export default function App() {
           <Route path="/admin/bookings" element={
             <ProtectedRoute role="ADMIN">
               <AdminBookingsPage />
+            </ProtectedRoute>
+          } />
+          
+
+          {/* 🔹 RESOURCE CALENDAR - ALL AUTHENTICATED USERS */}
+          <Route path="/resource-calendar" element={
+            <ProtectedRoute>
+              <ResourceCalendar />
             </ProtectedRoute>
           } />
 
