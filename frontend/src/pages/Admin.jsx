@@ -30,6 +30,14 @@ function Admin() {
           <span className="card-link">Manage Resources →</span>
         </Link>
 
+        {/* ✅ NEW: Resource Calendar Card */}
+        <Link to="/resource-calendar" className="dashboard-card calendar-card">
+          <div className="card-icon">📅</div>
+          <h3>Resource Calendar</h3>
+          <p>View resource-wise booking calendar</p>
+          <span className="card-link">View Calendar →</span>
+        </Link>
+
         {/* Users Management Card (Optional) */}
         <div className="dashboard-card users-card">
           <div className="card-icon">👥</div>
