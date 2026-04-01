@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { createResource } from '../services/resourceService'
 import {
   RESOURCE_LABELS,
-  getTypesByLabel
+  getResourceTypesByLabel
 } from '../utils/resourceOptions'
 import '../styles/ResourceFormPage.css'
 
@@ -20,7 +20,7 @@ export default function AddResourcePage() {
     status: 'ACTIVE'
   })
 
-  const availableTypes = getTypesByLabel(formData.label)
+  const availableTypes = getResourceTypesByLabel(formData.label)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -59,7 +59,7 @@ export default function AddResourcePage() {
         <div>
           <h1 className="form-page-title">Add Resource</h1>
           <p className="form-page-subtitle">
-            Create a new campus resource with faculty/category and resource type.
+            Create a new campus resource with faculty/category and type.
           </p>
         </div>
 
@@ -103,7 +103,9 @@ export default function AddResourcePage() {
           >
             <option value="">Select faculty/category</option>
             {RESOURCE_LABELS.map((label) => (
-              <option key={label} value={label}>{label}</option>
+              <option key={label} value={label}>
+                {label}
+              </option>
             ))}
           </select>
         </div>
@@ -122,7 +124,9 @@ export default function AddResourcePage() {
             </option>
 
             {availableTypes.map((type) => (
-              <option key={type} value={type}>{type}</option>
+              <option key={type} value={type}>
+                {type}
+              </option>
             ))}
           </select>
         </div>

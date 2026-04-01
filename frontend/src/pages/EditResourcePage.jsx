@@ -3,7 +3,7 @@ import { useNavigate, useParams, Link } from 'react-router-dom'
 import { getResourceById, updateResource } from '../services/resourceService'
 import {
   RESOURCE_LABELS,
-  getTypesByLabel
+  getResourceTypesByLabel
 } from '../utils/resourceOptions'
 import '../styles/ResourceFormPage.css'
 
@@ -21,7 +21,7 @@ export default function EditResourcePage() {
     status: 'ACTIVE'
   })
 
-  const availableTypes = getTypesByLabel(formData.label)
+  const availableTypes = getResourceTypesByLabel(formData.label)
 
   useEffect(() => {
     loadResource()
@@ -74,7 +74,7 @@ export default function EditResourcePage() {
         <div>
           <h1 className="form-page-title">Edit Resource</h1>
           <p className="form-page-subtitle">
-            Update campus resource category, type and availability status.
+            Update resource category, type, capacity, location and status.
           </p>
         </div>
 
@@ -116,7 +116,9 @@ export default function EditResourcePage() {
           >
             <option value="">Select faculty/category</option>
             {RESOURCE_LABELS.map((label) => (
-              <option key={label} value={label}>{label}</option>
+              <option key={label} value={label}>
+                {label}
+              </option>
             ))}
           </select>
         </div>
@@ -135,7 +137,9 @@ export default function EditResourcePage() {
             </option>
 
             {availableTypes.map((type) => (
-              <option key={type} value={type}>{type}</option>
+              <option key={type} value={type}>
+                {type}
+              </option>
             ))}
           </select>
         </div>
