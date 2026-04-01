@@ -3,33 +3,28 @@ import { Link } from 'react-router-dom'
 import {
   getAllResources,
   deleteResource,
-  searchResources,
-  filterResourcesByLabel,
-  filterResourcesByType
+  searchResources
 } from '../services/resourceService'
 import {
   RESOURCE_LABELS,
-  FACULTY_TYPES,
-  COMMON_TYPES
+  FACULTY_RESOURCE_TYPES,
+  COMMON_RESOURCE_TYPES
 } from '../utils/resourceOptions'
 import '../styles/AdminResourceListPage.css'
 
 export default function AdminResourceListPage() {
   const [resources, setResources] = useState([])
-  const [searchKeyword, setSearchKeyword] = useState('')
-  const [filterField, setFilterField] = useState('all')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterType, setFilterType] = useState('')
   const [filterValue, setFilterValue] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  const allTypes = [...FACULTY_TYPES, ...COMMON_TYPES]
+  const allTypes = [...FACULTY_RESOURCE_TYPES, ...COMMON_RESOURCE_TYPES]
 
   const loadResources = async () => {
     setLoading(true)
     setError('')
-    setSearchKeyword('')
-    setFilterField('all')
-    setFilterValue('')
 
     try {
       const response = await getAllResources()
@@ -60,81 +55,51 @@ export default function AdminResourceListPage() {
   }
 
   const handleSearch = async () => {
-    if (!searchKeyword.trim()) {
-      loadResources()
-      return
-    }
-
-    setLoading(true)
-    setError('')
-
     try {
-      const response = await searchResources(searchKeyword)
+      const response = await searchResources(searchTerm)
       setResources(response.data)
     } catch (error) {
-      console.error('Error searching resources:', error)
-      setError('Failed to search resources')
-    } finally {
-      setLoading(false)
+      console.error('Search error:', error)
+      setError('Search failed')
     }
   }
 
   const handleFilter = async () => {
-    if (filterField === 'all' || !filterValue) {
-      loadResources()
-      return
-    }
-
-    setLoading(true)
-    setError('')
-
     try {
-      let response
-
-      if (filterField === 'label') {
-        response = await filterResourcesByLabel(filterValue)
-      } else if (filterField === 'type') {
-        response = await filterResourcesByType(filterValue)
+      if (!filterType || !filterValue) {
+        loadResources()
+        return
       }
+
+      const response = await searchResources({
+        filterType,
+        filterValue
+      })
 
       setResources(response.data)
     } catch (error) {
-      console.error('Error filtering resources:', error)
-      setError('Failed to filter resources')
-    } finally {
-      setLoading(false)
+      console.error('Filter error:', error)
+      setError('Filter failed')
     }
   }
 
-  const handleFilterFieldChange = (e) => {
-    setFilterField(e.target.value)
-    setFilterValue('')
-  }
-
   if (loading) {
-    return (
-      <div className="page-container">
-        <p className="info-text">Loading resources...</p>
-      </div>
-    )
+    return <div className="page-container"><p className="info-text">Loading...</p></div>
   }
 
   if (error) {
-    return (
-      <div className="page-container">
-        <p className="error-text">{error}</p>
-      </div>
-    )
+    return <div className="page-container"><p className="error-text">{error}</p></div>
   }
 
   return (
     <div className="page-container">
+
+      {/* HEADER */}
       <div className="page-header">
         <div>
-          <p className="page-eyebrow">Facilities & Assets Catalogue</p>
           <h1 className="page-title">Admin Resource Management</h1>
           <p className="page-subtitle">
-            Categorize, search, filter and manage all campus resources from one premium admin panel.
+            Categorize, search, filter and manage all campus resources.
           </p>
         </div>
 
@@ -143,12 +108,13 @@ export default function AdminResourceListPage() {
         </Link>
       </div>
 
+      {/* TOOLBAR */}
       <div className="toolbar">
         <input
           type="text"
           placeholder="Search by name, code, type or faculty"
-          value={searchKeyword}
-          onChange={(e) => setSearchKeyword(e.target.value)}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
         />
 
@@ -157,46 +123,38 @@ export default function AdminResourceListPage() {
         </button>
 
         <select
-          value={filterField}
-          onChange={handleFilterFieldChange}
+          value={filterType}
+          onChange={(e) => {
+            setFilterType(e.target.value)
+            setFilterValue('')
+          }}
           className="filter-select"
         >
-          <option value="all">Filter By</option>
+          <option value="">Filter By</option>
           <option value="label">Faculty / Category</option>
           <option value="type">Resource Type</option>
         </select>
 
-        {filterField === 'label' && (
-          <select
-            value={filterValue}
-            onChange={(e) => setFilterValue(e.target.value)}
-            className="filter-select"
-          >
-            <option value="">Select category</option>
-            {RESOURCE_LABELS.map((label) => (
-              <option key={label} value={label}>
-                {label}
-              </option>
-            ))}
-          </select>
-        )}
+        <select
+          value={filterValue}
+          onChange={(e) => setFilterValue(e.target.value)}
+          className="filter-select"
+          disabled={!filterType}
+        >
+          <option value="">Select</option>
 
-        {filterField === 'type' && (
-          <select
-            value={filterValue}
-            onChange={(e) => setFilterValue(e.target.value)}
-            className="filter-select"
-          >
-            <option value="">Select type</option>
-            {allTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
+          {filterType === 'label' &&
+            RESOURCE_LABELS.map((label) => (
+              <option key={label} value={label}>{label}</option>
             ))}
-          </select>
-        )}
 
-        <button onClick={handleFilter} className="filter-btn">
+          {filterType === 'type' &&
+            allTypes.map((type) => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+        </select>
+
+        <button onClick={handleFilter} className="apply-btn">
           Apply
         </button>
 
@@ -205,6 +163,7 @@ export default function AdminResourceListPage() {
         </button>
       </div>
 
+      {/* TABLE */}
       {resources.length === 0 ? (
         <p className="info-text">No resources found.</p>
       ) : (
@@ -234,17 +193,13 @@ export default function AdminResourceListPage() {
                   <td>{resource.type}</td>
                   <td>{resource.capacity}</td>
                   <td>{resource.location}</td>
+
                   <td>
-                    <span
-                      className={
-                        resource.status === 'ACTIVE'
-                          ? 'status-badge active'
-                          : 'status-badge inactive'
-                      }
-                    >
+                    <span className="status-badge active">
                       {resource.status}
                     </span>
                   </td>
+
                   <td>
                     <Link
                       to={`/admin/resources/edit/${resource.id}`}
@@ -263,6 +218,7 @@ export default function AdminResourceListPage() {
                 </tr>
               ))}
             </tbody>
+
           </table>
         </div>
       )}
