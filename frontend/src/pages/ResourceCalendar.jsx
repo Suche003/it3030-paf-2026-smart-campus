@@ -15,13 +15,21 @@ export default function ResourceCalendar() {
   }, []);
 
   const loadResources = async () => {
-    const res = await getAllResources();
-    setResources(res.data || []);
+    try {
+      const res = await getAllResources();
+      setResources(res.data || []);
+    } catch (err) {
+      console.error('Failed to load resources', err);
+    }
   };
 
   const loadBookings = async () => {
-    const res = await getAllBookings();
-    setBookings(res.data || []);
+    try {
+      const res = await getAllBookings();
+      setBookings(res.data || []);
+    } catch (err) {
+      console.error('Failed to load bookings', err);
+    }
   };
 
   const getResourceBookings = () => {
@@ -40,7 +48,9 @@ export default function ResourceCalendar() {
     const firstDay = getFirstDayOfMonth(currentDate);
     const cells = [];
 
-    for (let i = 0; i < firstDay; i++) cells.push(<div key={`empty-${i}`} className="cal-cell empty"></div>);
+    for (let i = 0; i < firstDay; i++) {
+      cells.push(<div key={`empty-${i}`} className="cal-cell empty"></div>);
+    }
 
     for (let day = 1; day <= daysInMonth; day++) {
       const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
@@ -62,12 +72,18 @@ export default function ResourceCalendar() {
   return (
     <div className="resource-calendar-container">
       <h2>📅 Resource Booking Calendar</h2>
-      <select onChange={(e) => {
-        const res = resources.find(r => r.id === parseInt(e.target.value));
-        setSelectedResource(res);
-      }} className="resource-selector">
+      <select
+        onChange={(e) => {
+          const res = resources.find(r => r.id === parseInt(e.target.value));
+          setSelectedResource(res);
+        }}
+        className="resource-selector"
+        value={selectedResource?.id || ''}
+      >
         <option value="">-- Select Resource --</option>
-        {resources.map(r => <option key={r.id} value={r.id}>{r.name} ({r.type})</option>)}
+        {resources.map(r => (
+          <option key={r.id} value={r.id}>{r.name} ({r.type})</option>
+        ))}
       </select>
 
       {selectedResource && (
