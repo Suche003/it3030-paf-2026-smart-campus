@@ -1,47 +1,49 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
+
 import AdminResourceListPage from './pages/AdminResourceListPage'
 import AddResourcePage from './pages/AddResourcePage'
 import EditResourcePage from './pages/EditResourcePage'
+
+import AddTicketPage from './pages/AddTicketPage'
+import StudentTicketListPage from './pages/StudentTicketListPage'
+import EditTicketPage from './pages/EditTicketPage'
+
+import AdminTicketListPage from './pages/AdminTicketListPage'
+
+import TechnicianTicketPage from './pages/TechnicianTicketPage'
+
 import './styles/App.css'
 
 export default function App() {
   return (
     <main className="admin-module-shell">
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: 'rgba(20, 20, 30, 0.92)',
-            color: '#fff',
-            border: '1px solid rgba(255,255,255,0.15)',
-            backdropFilter: 'blur(14px)',
-            borderRadius: '14px',
-            padding: '14px 18px',
-            fontWeight: '700'
-          },
-          success: {
-            style: {
-              border: '1px solid rgba(139,255,176,0.4)',
-              boxShadow: '0 0 18px rgba(139,255,176,0.18)'
-            }
-          },
-          error: {
-            style: {
-              border: '1px solid rgba(255,140,168,0.4)',
-              boxShadow: '0 0 18px rgba(255,140,168,0.18)'
-            }
-          }
-        }}
-      />
+
+      <Toaster position="top-right" />
 
       <Routes>
+
+        {/* DEFAULT */}
         <Route path="/" element={<Navigate to="/admin/resources" replace />} />
+
+        {/* ADMIN RESOURCE */}
         <Route path="/admin/resources" element={<AdminResourceListPage />} />
         <Route path="/admin/resources/add" element={<AddResourcePage />} />
         <Route path="/admin/resources/edit/:id" element={<EditResourcePage />} />
+
+        {/* STUDENT TICKETS */}
+        <Route path="/student/tickets" element={<StudentTicketListPage />} />
+        <Route path="/student/tickets/create" element={<AddTicketPage />} />
+        <Route path="/student/tickets/edit/:id" element={<EditTicketPage />} />
+
+        {/* ADMIN TICKETS */}
+        <Route path="/admin/tickets" element={<AdminTicketListPage />} />
+
+        {/* TECHNICIAN */}
+        <Route path="/technician/tickets" element={<TechnicianTicketPage />} />
+
       </Routes>
+
     </main>
   )
 }
