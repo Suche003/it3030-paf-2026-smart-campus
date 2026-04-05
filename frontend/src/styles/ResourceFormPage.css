@@ -178,3 +178,16 @@
     padding: 24px;
   }
 }
+
+.field-error {
+  color: #ff4d7a;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  font-weight: 600;
+}
+
+input.error,
+select.error {
+  border: 1px solid #ff2b6a !important;
+  box-shadow: 0 0 0 3px rgba(255, 43, 106, 0.15);
+}
