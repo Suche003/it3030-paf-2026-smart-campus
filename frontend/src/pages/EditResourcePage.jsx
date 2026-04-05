@@ -3,7 +3,8 @@ import { useNavigate, useParams, Link } from 'react-router-dom'
 import { getResourceById, updateResource } from '../services/resourceService'
 import {
   RESOURCE_LABELS,
-  getResourceTypesByLabel
+  getResourceTypesByLabel,
+  getCodePrefixByLabel
 } from '../utils/resourceOptions'
 import '../styles/ResourceFormPage.css'
 
@@ -13,13 +14,15 @@ export default function EditResourcePage() {
 
   const [formData, setFormData] = useState({
     name: '',
-    codeName: '',
     label: '',
     type: '',
+    codeName: '',
     capacity: '',
     location: '',
     status: 'ACTIVE'
   })
+
+  const [errors, setErrors] = useState({})
 
   const availableTypes = getResourceTypesByLabel(formData.label)
 
@@ -30,36 +33,102 @@ export default function EditResourcePage() {
   const loadResource = async () => {
     try {
       const response = await getResourceById(id)
-      setFormData(response.data)
+      setFormData({
+        name: response.data.name || '',
+        label: response.data.label || '',
+        type: response.data.type || '',
+        codeName: response.data.codeName || '',
+        capacity: response.data.capacity || '',
+        location: response.data.location || '',
+        status: response.data.status || 'ACTIVE'
+      })
     } catch (error) {
       console.error('Error loading resource:', error)
       alert('Failed to load resource')
     }
   }
 
+  const validateForm = () => {
+    const newErrors = {}
+    const prefix = getCodePrefixByLabel(formData.label)
+
+    if (!formData.name.trim()) {
+      newErrors.name = 'Resource name is required'
+    }
+
+    if (!formData.label) {
+      newErrors.label = 'Faculty / Category is required'
+    }
+
+    if (!formData.type) {
+      newErrors.type = 'Resource type is required'
+    }
+
+    if (!formData.codeName.trim()) {
+      newErrors.codeName = 'Resource code is required'
+    } else if (prefix && !formData.codeName.startsWith(prefix)) {
+      newErrors.codeName = `Code must start with ${prefix}`
+    } else if (!/^[A-Z]{2}\d{3}$/.test(formData.codeName)) {
+      newErrors.codeName = 'Code format must be like IT001'
+    }
+
+    if (!formData.capacity || Number(formData.capacity) <= 0) {
+      newErrors.capacity = 'Capacity must be greater than 0'
+    }
+
+    if (!formData.location.trim()) {
+      newErrors.location = 'Location is required'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleChange = (e) => {
     const { name, value } = e.target
 
+    setErrors((prev) => ({
+      ...prev,
+      [name]: ''
+    }))
+
     if (name === 'label') {
+      const prefix = getCodePrefixByLabel(value)
+
       setFormData((prev) => ({
         ...prev,
         label: value,
-        type: ''
+        type: '',
+        codeName: prefix
+      }))
+      return
+    }
+
+    if (name === 'codeName') {
+      setFormData((prev) => ({
+        ...prev,
+        codeName: value.toUpperCase()
       }))
       return
     }
 
     setFormData((prev) => ({
       ...prev,
-      [name]: name === 'capacity' ? Number(value) : value
+      [name]: name === 'capacity' ? value : value
     }))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    if (!validateForm()) return
+
     try {
-      await updateResource(id, formData)
+      await updateResource(id, {
+        ...formData,
+        capacity: Number(formData.capacity)
+      })
+
       alert('Resource updated successfully')
       navigate('/admin/resources')
     } catch (error) {
@@ -74,7 +143,7 @@ export default function EditResourcePage() {
         <div>
           <h1 className="form-page-title">Edit Resource</h1>
           <p className="form-page-subtitle">
-            Update resource category, type, capacity, location and status.
+            Update resource category, type, code, capacity, location and status.
           </p>
         </div>
 
@@ -83,7 +152,7 @@ export default function EditResourcePage() {
         </Link>
       </div>
 
-      <form onSubmit={handleSubmit} className="resource-form-card">
+      <form onSubmit={handleSubmit} className="resource-form-card" noValidate>
         <div className="form-group">
           <label>Resource Name</label>
           <input
@@ -91,19 +160,8 @@ export default function EditResourcePage() {
             name="name"
             value={formData.name}
             onChange={handleChange}
-            required
           />
-        </div>
-
-        <div className="form-group">
-          <label>Resource Code</label>
-          <input
-            type="text"
-            name="codeName"
-            value={formData.codeName}
-            onChange={handleChange}
-            required
-          />
+          {errors.name && <p className="field-error">{errors.name}</p>}
         </div>
 
         <div className="form-group">
@@ -112,7 +170,6 @@ export default function EditResourcePage() {
             name="label"
             value={formData.label}
             onChange={handleChange}
-            required
           >
             <option value="">Select faculty/category</option>
             {RESOURCE_LABELS.map((label) => (
@@ -121,6 +178,7 @@ export default function EditResourcePage() {
               </option>
             ))}
           </select>
+          {errors.label && <p className="field-error">{errors.label}</p>}
         </div>
 
         <div className="form-group">
@@ -129,7 +187,6 @@ export default function EditResourcePage() {
             name="type"
             value={formData.type}
             onChange={handleChange}
-            required
             disabled={!formData.label}
           >
             <option value="">
@@ -142,6 +199,19 @@ export default function EditResourcePage() {
               </option>
             ))}
           </select>
+          {errors.type && <p className="field-error">{errors.type}</p>}
+        </div>
+
+        <div className="form-group">
+          <label>Resource Code</label>
+          <input
+            type="text"
+            name="codeName"
+            value={formData.codeName}
+            onChange={handleChange}
+            maxLength="5"
+          />
+          {errors.codeName && <p className="field-error">{errors.codeName}</p>}
         </div>
 
         <div className="form-group">
@@ -152,8 +222,8 @@ export default function EditResourcePage() {
             min="1"
             value={formData.capacity}
             onChange={handleChange}
-            required
           />
+          {errors.capacity && <p className="field-error">{errors.capacity}</p>}
         </div>
 
         <div className="form-group">
@@ -163,8 +233,8 @@ export default function EditResourcePage() {
             name="location"
             value={formData.location}
             onChange={handleChange}
-            required
           />
+          {errors.location && <p className="field-error">{errors.location}</p>}
         </div>
 
         <div className="form-group">
