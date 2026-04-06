@@ -38,7 +38,6 @@ public class ResourceService {
             existing.setCapacity(resource.getCapacity());
             existing.setLocation(resource.getLocation());
             existing.setStatus(resource.getStatus());
-
             return repository.save(existing);
         }
 
@@ -65,5 +64,31 @@ public class ResourceService {
                         keyword,
                         keyword
                 );
+    }
+
+    public String generateNextCode(String label) {
+        String prefix = switch (label) {
+            case "Computing Faculty" -> "IT";
+            case "Business School" -> "BS";
+            case "Engineering Faculty" -> "EN";
+            case "Humanities and Sciences Faculty" -> "HS";
+            case "Common Area" -> "CO";
+            default -> "";
+        };
+
+        if (prefix.isEmpty()) {
+            return "";
+        }
+
+        List<Resource> resources = repository.findByCodeNameStartingWith(prefix);
+
+        int maxNumber = resources.stream()
+                .map(Resource::getCodeName)
+                .filter(code -> code != null && code.matches(prefix + "\\d{3}"))
+                .mapToInt(code -> Integer.parseInt(code.substring(2)))
+                .max()
+                .orElse(0);
+
+        return prefix + String.format("%03d", maxNumber + 1);
     }
 }

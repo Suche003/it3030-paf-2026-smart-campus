@@ -58,4 +58,9 @@ public class ResourceController {
     public List<Resource> filterByLabel(@RequestParam String label) {
         return service.findByLabel(label);
     }
+
+    @GetMapping("/next-code")
+    public String getNextCode(@RequestParam String label) {
+        return service.generateNextCode(label);
+    }
 }

@@ -239,3 +239,8 @@ select.error {
 .submit-btn:disabled:hover {
   transform: none;
 }
+
+.form-group input[readonly] {
+  opacity: 0.85;
+  cursor: not-allowed;
+}

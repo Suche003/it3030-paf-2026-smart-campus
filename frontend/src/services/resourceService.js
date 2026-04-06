@@ -20,3 +20,6 @@ export const filterResourcesByLabel = (label) =>
 
 export const filterResourcesByType = (type) =>
   axios.get(`${API_URL}/filter/type?type=${encodeURIComponent(type)}`)
+
+export const getNextResourceCode = (label) =>
+  axios.get(`${API_URL}/next-code?label=${encodeURIComponent(label)}`)

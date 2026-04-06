@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { createResource } from '../services/resourceService'
+import { createResource, getNextResourceCode } from '../services/resourceService'
 import {
   RESOURCE_LABELS,
   getResourceTypesByLabel,
@@ -23,6 +23,7 @@ export default function AddResourcePage() {
 
   const [errors, setErrors] = useState({})
   const [touched, setTouched] = useState({})
+  const [codeLoading, setCodeLoading] = useState(false)
 
   const availableTypes = getResourceTypesByLabel(formData.label)
 
@@ -69,32 +70,59 @@ export default function AddResourcePage() {
   const isFormValid = () => {
     const fields = ['name', 'label', 'type', 'codeName', 'capacity', 'location']
 
-    return fields.every((field) => {
-      return formData[field] && !validateValue(field, formData[field])
-    })
+    return (
+      !codeLoading &&
+      fields.every((field) => formData[field] && !validateValue(field, formData[field]))
+    )
   }
 
-  const handleChange = (e) => {
+  const handleChange = async (e) => {
     const { name, value } = e.target
     let updatedValue = name === 'codeName' ? value.toUpperCase() : value
 
     setTouched((prev) => ({ ...prev, [name]: true }))
 
     if (name === 'label') {
-      const prefix = getCodePrefixByLabel(updatedValue)
-
       const updatedData = {
         ...formData,
         label: updatedValue,
         type: '',
-        codeName: prefix
+        codeName: ''
       }
 
       setFormData(updatedData)
 
       validateField('label', updatedValue, updatedData)
       validateField('type', '', updatedData)
-      validateField('codeName', prefix, updatedData)
+
+      if (!updatedValue) {
+        validateField('codeName', '', updatedData)
+        return
+      }
+
+      try {
+        setCodeLoading(true)
+        const response = await getNextResourceCode(updatedValue)
+        const generatedCode = response.data
+
+        const finalData = {
+          ...updatedData,
+          codeName: generatedCode
+        }
+
+        setFormData(finalData)
+        setTouched((prev) => ({ ...prev, codeName: true }))
+        validateField('codeName', generatedCode, finalData)
+      } catch (error) {
+        console.error('Failed to generate code:', error)
+        setErrors((prev) => ({
+          ...prev,
+          codeName: 'Failed to generate resource code'
+        }))
+      } finally {
+        setCodeLoading(false)
+      }
+
       return
     }
 
@@ -154,7 +182,7 @@ export default function AddResourcePage() {
         <div>
           <h1 className="form-page-title">Add Resource</h1>
           <p className="form-page-subtitle">
-            Create a new campus resource with category, type and code.
+            Create a new campus resource with auto-generated code.
           </p>
         </div>
 
@@ -228,11 +256,9 @@ export default function AddResourcePage() {
           <div className="input-wrap">
             <input
               name="codeName"
-              placeholder="Example: IT001"
-              value={formData.codeName}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              maxLength={5}
+              placeholder="Auto generated"
+              value={codeLoading ? 'Generating...' : formData.codeName}
+              readOnly
               className={errors.codeName ? 'error' : isFieldValid('codeName') ? 'valid' : ''}
             />
             {isFieldValid('codeName') && <span className="valid-check">✓</span>}

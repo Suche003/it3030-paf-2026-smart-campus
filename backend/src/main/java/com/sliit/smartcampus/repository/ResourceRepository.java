@@ -11,6 +11,8 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
 
     List<Resource> findByLabel(String label);
 
+    List<Resource> findByCodeNameStartingWith(String prefix);
+
     List<Resource> findByNameContainingIgnoreCaseOrTypeContainingIgnoreCaseOrLabelContainingIgnoreCaseOrCodeNameContainingIgnoreCase(
             String name,
             String type,
