@@ -191,3 +191,51 @@ select.error {
   border: 1px solid #ff2b6a !important;
   box-shadow: 0 0 0 3px rgba(255, 43, 106, 0.15);
 }
+
+.input-wrap {
+  position: relative;
+}
+
+.field-error {
+  color: #ff4d7a;
+  font-size: 0.85rem;
+  margin: 4px 0 0;
+  font-weight: 700;
+}
+
+.form-group input.error,
+.form-group select.error {
+  border-color: #ff2b6a !important;
+  box-shadow: 0 0 0 3px rgba(255, 43, 106, 0.15);
+}
+
+.form-group input.valid,
+.form-group select.valid {
+  border-color: rgba(139, 255, 176, 0.55) !important;
+  box-shadow: 0 0 0 3px rgba(139, 255, 176, 0.1);
+}
+
+.valid-check {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #8bffb0;
+  font-size: 1.1rem;
+  font-weight: 900;
+  pointer-events: none;
+}
+
+.input-wrap select + .valid-check {
+  right: 42px;
+}
+
+.disabled-btn {
+  opacity: 0.45;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+.submit-btn:disabled:hover {
+  transform: none;
+}
