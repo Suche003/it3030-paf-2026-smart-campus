@@ -17,28 +17,28 @@ public class TicketService {
         this.repository = repository;
     }
 
-    //  CREATE 
+    // CREATE
     public Ticket create(Ticket ticket) {
         ticket.setStatus(TicketStatus.OPEN);
         return repository.save(ticket);
     }
 
-    //  GET ALL 
+    // GET ALL
     public List<Ticket> getAll() {
         return repository.findAll();
     }
 
-    //  GET BY ID 
+    // GET BY ID
     public Ticket getById(Long id) {
         return repository.findById(id).orElse(null);
     }
 
-    //  STUDENT TICKETS 
+    // STUDENT TICKETS
     public List<Ticket> getByStudent(Long studentId) {
         return repository.findByStudentId(studentId);
     }
 
-    //  UPDATE TICKET 
+    // UPDATE TICKET
     public Ticket update(Long id, Ticket updated) {
 
         Optional<Ticket> optional = repository.findById(id);
@@ -46,13 +46,13 @@ public class TicketService {
 
         Ticket existing = optional.get();
 
+        // Cannot update if already closed or rejected
         if (existing.getStatus() == TicketStatus.CLOSED ||
             existing.getStatus() == TicketStatus.REJECTED) {
             return null;
         }
 
         existing.setTitle(updated.getTitle());
-        existing.setDescription(updated.getDescription());
         existing.setCategory(updated.getCategory());
         existing.setLocation(updated.getLocation());
         existing.setContact(updated.getContact());
@@ -63,7 +63,7 @@ public class TicketService {
         return repository.save(existing);
     }
 
-    //  DELETE 
+    // DELETE
     public boolean delete(Long id) {
 
         Optional<Ticket> optional = repository.findById(id);
@@ -71,6 +71,7 @@ public class TicketService {
 
         Ticket ticket = optional.get();
 
+        // Only OPEN tickets can be deleted
         if (ticket.getStatus() != TicketStatus.OPEN) {
             return false;
         }
@@ -79,7 +80,7 @@ public class TicketService {
         return true;
     }
 
-    //  ASSIGN TECHNICIAN 
+    // ASSIGN TECHNICIAN
     public Ticket assignTechnician(Long id, Long techId, String techName) {
 
         Optional<Ticket> optional = repository.findById(id);
@@ -87,7 +88,9 @@ public class TicketService {
 
         Ticket ticket = optional.get();
 
-        if (ticket.getStatus() == TicketStatus.CLOSED) return null;
+        if (ticket.getStatus() == TicketStatus.CLOSED) {
+            return null;
+        }
 
         ticket.setTechnicianId(techId);
         ticket.setTechnicianName(techName);
@@ -96,7 +99,7 @@ public class TicketService {
         return repository.save(ticket);
     }
 
-    //  STATUS UPDATE 
+    // STATUS UPDATE
     public Ticket updateStatus(Long id, TicketStatus status) {
 
         Optional<Ticket> optional = repository.findById(id);
@@ -104,13 +107,16 @@ public class TicketService {
 
         Ticket ticket = optional.get();
 
-        if (ticket.getStatus() == TicketStatus.CLOSED) return null;
+        if (ticket.getStatus() == TicketStatus.CLOSED) {
+            return null;
+        }
 
         ticket.setStatus(status);
+
         return repository.save(ticket);
     }
 
-    //  RESOLUTION 
+    // ADD RESOLUTION
     public Ticket addResolution(Long id, String note) {
 
         Optional<Ticket> optional = repository.findById(id);
@@ -124,7 +130,7 @@ public class TicketService {
         return repository.save(ticket);
     }
 
-    //  REJECT 
+    // REJECT TICKET
     public Ticket rejectTicket(Long id, String reason) {
 
         Optional<Ticket> optional = repository.findById(id);
@@ -138,7 +144,7 @@ public class TicketService {
         return repository.save(ticket);
     }
 
-    //  TECHNICIAN VIEW 
+    // TECHNICIAN VIEW
     public List<Ticket> getByTechnician(Long techId) {
         return repository.findByTechnicianId(techId);
     }
