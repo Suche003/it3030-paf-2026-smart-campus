@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import {
   getAllResources,
   deleteResource,
@@ -47,10 +48,11 @@ export default function AdminResourceListPage() {
 
     try {
       await deleteResource(id)
+      toast.success('Resource deleted successfully')
       loadResources()
     } catch (error) {
       console.error('Error deleting resource:', error)
-      alert('Failed to delete resource')
+      toast.error('Failed to delete resource')
     }
   }
 

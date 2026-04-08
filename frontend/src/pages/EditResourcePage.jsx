@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { getResourceById, updateResource } from '../services/resourceService'
 import {
   RESOURCE_LABELS,
@@ -46,7 +47,7 @@ export default function EditResourcePage() {
       })
     } catch (error) {
       console.error('Error loading resource:', error)
-      alert('Failed to load resource')
+      toast.error('Failed to load resource')
     }
   }
 
@@ -164,11 +165,11 @@ export default function EditResourcePage() {
         capacity: Number(formData.capacity)
       })
 
-      alert('Resource updated successfully')
+      toast.success('Resource updated successfully')
       navigate('/admin/resources')
     } catch (error) {
       console.error(error)
-      alert('Failed to update resource')
+      toast.error('Failed to update resource')
     }
   }
 

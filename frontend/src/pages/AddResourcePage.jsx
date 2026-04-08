@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { createResource, getNextResourceCode } from '../services/resourceService'
 import {
   RESOURCE_LABELS,
@@ -168,11 +169,11 @@ export default function AddResourcePage() {
         capacity: Number(formData.capacity)
       })
 
-      alert('Resource added successfully')
+      toast.success('Resource added successfully')
       navigate('/admin/resources')
     } catch (error) {
       console.error(error)
-      alert('Failed to add resource')
+      toast.error('Failed to add resource')    
     }
   }
 
