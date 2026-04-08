@@ -22,9 +22,6 @@ public class Ticket {
     @Column(nullable = false)
     private String title;
 
-    @Column(length = 2000, nullable = false)
-    private String description;
-
     @Column(nullable = false)
     private String category;
 
