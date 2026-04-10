@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
+
 import {
   getAllResources,
   deleteResource,
   searchResources
 } from '../services/resourceService'
+
 import {
   RESOURCE_LABELS,
   FACULTY_RESOURCE_TYPES,
   COMMON_RESOURCE_TYPES
 } from '../utils/resourceOptions'
+
+import ConfirmModal from '../components/ConfirmModal'
 import '../styles/AdminResourceListPage.css'
 
 export default function AdminResourceListPage() {
@@ -21,8 +25,13 @@ export default function AdminResourceListPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
+  // 🔥 modal states
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+
   const allTypes = [...FACULTY_RESOURCE_TYPES, ...COMMON_RESOURCE_TYPES]
 
+  // LOAD DATA
   const loadResources = async () => {
     setLoading(true)
     setError('')
@@ -31,8 +40,9 @@ export default function AdminResourceListPage() {
       const response = await getAllResources()
       setResources(response.data)
     } catch (error) {
-      console.error('Error loading resources:', error)
+      console.error(error)
       setError('Failed to load resources')
+      toast.error('Failed to load resources')
     } finally {
       setLoading(false)
     }
@@ -42,30 +52,49 @@ export default function AdminResourceListPage() {
     loadResources()
   }, [])
 
-  const handleDelete = async (id) => {
-    const confirmed = window.confirm('Are you sure you want to delete this resource?')
-    if (!confirmed) return
+  // 🔥 MODAL CONTROL
+  const openDeleteModal = (resource) => {
+    setDeleteTarget(resource)
+    setDeleteModalOpen(true)
+  }
+
+  const closeDeleteModal = () => {
+    setDeleteTarget(null)
+    setDeleteModalOpen(false)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
 
     try {
-      await deleteResource(id)
+      await deleteResource(deleteTarget.id)
       toast.success('Resource deleted successfully')
+      closeDeleteModal()
       loadResources()
     } catch (error) {
-      console.error('Error deleting resource:', error)
+      console.error(error)
       toast.error('Failed to delete resource')
     }
   }
 
+  // SEARCH
   const handleSearch = async () => {
     try {
+      if (!searchTerm.trim()) {
+        loadResources()
+        return
+      }
+
       const response = await searchResources(searchTerm)
       setResources(response.data)
     } catch (error) {
-      console.error('Search error:', error)
+      console.error(error)
       setError('Search failed')
+      toast.error('Search failed')
     }
   }
 
+  // FILTER
   const handleFilter = async () => {
     try {
       if (!filterType || !filterValue) {
@@ -73,24 +102,29 @@ export default function AdminResourceListPage() {
         return
       }
 
-      const response = await searchResources({
-        filterType,
-        filterValue
-      })
-
+      const response = await searchResources(filterValue)
       setResources(response.data)
     } catch (error) {
-      console.error('Filter error:', error)
+      console.error(error)
       setError('Filter failed')
+      toast.error('Filter failed')
     }
   }
 
   if (loading) {
-    return <div className="page-container"><p className="info-text">Loading...</p></div>
+    return (
+      <div className="page-container">
+        <p className="info-text">Loading...</p>
+      </div>
+    )
   }
 
   if (error) {
-    return <div className="page-container"><p className="error-text">{error}</p></div>
+    return (
+      <div className="page-container">
+        <p className="error-text">{error}</p>
+      </div>
+    )
   }
 
   return (
@@ -176,7 +210,7 @@ export default function AdminResourceListPage() {
                 <th>ID</th>
                 <th>Code</th>
                 <th>Name</th>
-                <th>Faculty / Category</th>
+                <th>Faculty</th>
                 <th>Type</th>
                 <th>Capacity</th>
                 <th>Location</th>
@@ -211,7 +245,7 @@ export default function AdminResourceListPage() {
                     </Link>
 
                     <button
-                      onClick={() => handleDelete(resource.id)}
+                      onClick={() => openDeleteModal(resource)}
                       className="table-btn delete-btn"
                     >
                       Delete
@@ -224,6 +258,21 @@ export default function AdminResourceListPage() {
           </table>
         </div>
       )}
+
+      {/* 🔥 CONFIRM MODAL */}
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        title="Delete Resource?"
+        message={
+          deleteTarget
+            ? `Are you sure you want to delete ${deleteTarget.name} (${deleteTarget.codeName})? This action cannot be undone.`
+            : ''
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={closeDeleteModal}
+      />
     </div>
   )
 }
