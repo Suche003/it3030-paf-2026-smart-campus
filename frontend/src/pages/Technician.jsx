@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getAllBookings } from '../services/bookingService';
 import './Technician.css';
 
 function Technician() {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -64,12 +66,6 @@ function Technician() {
     return bookings.filter(b => b.bookingDate === ds);
   };
   const changeMonth = (delta) => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth()+delta, 1));
-  const getStatusColor = (s) => {
-    if(s==='APPROVED') return '#4caf50';
-    if(s==='PENDING') return '#ffc107';
-    if(s==='REJECTED') return '#f44336';
-    return '#9e9e9e';
-  };
   const renderCalendar = () => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -111,8 +107,19 @@ function Technician() {
   return (
     <div className="technician-dashboard">
       <div className="dashboard-header">
-        <div><h1>🔧 Technician Dashboard</h1><p>Welcome, {userName} ({userEmail})</p><span className="subtitle">View all campus resource bookings</span></div>
-        <div className="stats-badge"><span>📋 Total Bookings: {stats.total}</span></div>
+        <div>
+          <h1>🔧 Technician Dashboard</h1>
+          <p>Welcome, {userName} ({userEmail})</p>
+          <span className="subtitle">View all campus resource bookings</span>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button className="new-booking-btn" onClick={() => navigate('/bookings/new')}>
+            + New Booking
+          </button>
+          <div className="stats-badge">
+            <span>📋 Total Bookings: {stats.total}</span>
+          </div>
+        </div>
       </div>
 
       <div className="filters-bar">
@@ -134,12 +141,19 @@ function Technician() {
         filteredBookings.length === 0 ? <div className="empty-state">No bookings match your filters.</div> :
         <div className="table-container">
           <table className="bookings-table">
-            <thead><tr><th>ID</th><th>Resource</th><th>User</th><th>Date</th><th>Time</th><th>Purpose</th><th>Status</th></tr></thead>
+            <thead>
+              <tr><th>ID</th><th>Resource</th><th>User</th><th>Date</th><th>Time</th><th>Purpose</th><th>Status</th></tr>
+            </thead>
             <tbody>
               {filteredBookings.map(b => (
                 <tr key={b.id} onClick={() => setSelectedBooking(b)} style={{cursor:'pointer'}}>
-                  <td>#{b.id}</td><td><strong>{b.resourceName}</strong></td><td>{b.userEmail || `User ${b.userId}`}</td>
-                  <td>{b.bookingDate}</td><td>{b.startTime} - {b.endTime}</td><td>{b.purpose?.substring(0,40)}</td><td>{getStatusBadge(b.status)}</td>
+                  <td>#{b.id}</td>
+                  <td><strong>{b.resourceName}</strong></td>
+                  <td>{b.userEmail || `User ${b.userId}`}</td>
+                  <td>{b.bookingDate}</td>
+                  <td>{b.startTime} - {b.endTime}</td>
+                  <td>{b.purpose?.substring(0,40)}</td>
+                  <td>{getStatusBadge(b.status)}</td>
                 </tr>
               ))}
             </tbody>
@@ -149,25 +163,43 @@ function Technician() {
 
       {viewMode === 'calendar' && (
         <div className="calendar-wrapper">
-          <div className="cal-nav"><button onClick={()=>changeMonth(-1)}>◀ Previous</button><h3>{currentDate.toLocaleString('default',{month:'long', year:'numeric'})}</h3><button onClick={()=>changeMonth(1)}>Next ▶</button></div>
-          <div className="cal-weekdays">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=><div key={d} className="cal-weekday">{d}</div>)}</div>
+          <div className="cal-nav">
+            <button onClick={()=>changeMonth(-1)}>◀ Previous</button>
+            <h3>{currentDate.toLocaleString('default',{month:'long', year:'numeric'})}</h3>
+            <button onClick={()=>changeMonth(1)}>Next ▶</button>
+          </div>
+          <div className="cal-weekdays">
+            {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=><div key={d} className="cal-weekday">{d}</div>)}
+          </div>
           <div className="cal-grid">{renderCalendar()}</div>
-          <div className="cal-legend"><span><span className="legend-dot pending"></span> Pending</span><span><span className="legend-dot approved"></span> Approved</span><span><span className="legend-dot rejected"></span> Rejected</span></div>
+          <div className="cal-legend">
+            <span><span className="legend-dot pending"></span> Pending</span>
+            <span><span className="legend-dot approved"></span> Approved</span>
+            <span><span className="legend-dot rejected"></span> Rejected</span>
+          </div>
         </div>
       )}
 
       {selectedBooking && (
         <div className="modal-overlay" onClick={()=>setSelectedBooking(null)}>
           <div className="modal-content" onClick={e=>e.stopPropagation()}>
-            <div className="modal-header"><h3>📅 Booking Details</h3><button className="modal-close" onClick={()=>setSelectedBooking(null)}>✕</button></div>
+            <div className="modal-header">
+              <h3>📅 Booking Details</h3>
+              <button className="modal-close" onClick={()=>setSelectedBooking(null)}>✕</button>
+            </div>
             <div className="modal-body">
-              <p><strong>Resource:</strong> {selectedBooking.resourceName}</p><p><strong>User:</strong> {selectedBooking.userEmail || `User ${selectedBooking.userId}`}</p>
-              <p><strong>Date:</strong> {selectedBooking.bookingDate}</p><p><strong>Time:</strong> {selectedBooking.startTime} - {selectedBooking.endTime}</p>
-              <p><strong>Purpose:</strong> {selectedBooking.purpose}</p><p><strong>Attendees:</strong> {selectedBooking.attendees || 1}</p>
+              <p><strong>Resource:</strong> {selectedBooking.resourceName}</p>
+              <p><strong>User:</strong> {selectedBooking.userEmail || `User ${selectedBooking.userId}`}</p>
+              <p><strong>Date:</strong> {selectedBooking.bookingDate}</p>
+              <p><strong>Time:</strong> {selectedBooking.startTime} - {selectedBooking.endTime}</p>
+              <p><strong>Purpose:</strong> {selectedBooking.purpose}</p>
+              <p><strong>Attendees:</strong> {selectedBooking.attendees || 1}</p>
               <p><strong>Status:</strong> {getStatusBadge(selectedBooking.status)}</p>
               {selectedBooking.rejectReason && <p><strong>Rejection Reason:</strong> {selectedBooking.rejectReason}</p>}
             </div>
-            <div className="modal-footer"><button className="modal-close-btn" onClick={()=>setSelectedBooking(null)}>Close</button></div>
+            <div className="modal-footer">
+              <button className="modal-close-btn" onClick={()=>setSelectedBooking(null)}>Close</button>
+            </div>
           </div>
         </div>
       )}
