@@ -3,6 +3,7 @@ package com.sliit.smartcampus.controller;
 import com.sliit.smartcampus.entity.Resource;
 import com.sliit.smartcampus.service.ResourceService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,8 +20,12 @@ public class ResourceController {
     }
 
     @PostMapping
-    public Resource create(@Valid @RequestBody Resource resource) {
-        return service.save(resource);
+    public ResponseEntity<?> create(@Valid @RequestBody Resource resource) {
+        try {
+            return ResponseEntity.ok(service.save(resource));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Resource code already exists");
+        }
     }
 
     @GetMapping
@@ -28,20 +33,9 @@ public class ResourceController {
         return service.getAll();
     }
 
-    @GetMapping("/{id}")
-    public Resource getById(@PathVariable Long id) {
-        return service.getById(id);
-    }
-
-    @PutMapping("/{id}")
-    public Resource update(@PathVariable Long id, @Valid @RequestBody Resource resource) {
-        return service.update(id, resource);
-    }
-
-    @DeleteMapping("/{id}")
-    public String delete(@PathVariable Long id) {
-        service.delete(id);
-        return "Deleted successfully";
+    @GetMapping("/next-code")
+    public String getNextCode(@RequestParam String label) {
+        return service.generateNextCode(label);
     }
 
     @GetMapping("/search")
@@ -59,8 +53,29 @@ public class ResourceController {
         return service.findByLabel(label);
     }
 
-    @GetMapping("/next-code")
-    public String getNextCode(@RequestParam String label) {
-        return service.generateNextCode(label);
+    @GetMapping("/{id}")
+    public Resource getById(@PathVariable Long id) {
+        return service.getById(id);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody Resource resource) {
+        try {
+            Resource updatedResource = service.update(id, resource);
+
+            if (updatedResource == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            return ResponseEntity.ok(updatedResource);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Resource code already exists");
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public String delete(@PathVariable Long id) {
+        service.delete(id);
+        return "Deleted successfully";
     }
 }
