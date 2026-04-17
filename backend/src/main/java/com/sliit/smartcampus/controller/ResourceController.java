@@ -1,6 +1,7 @@
 package com.sliit.smartcampus.controller;
 
 import com.sliit.smartcampus.entity.Resource;
+import com.sliit.smartcampus.enumtypes.ResourceStatus;
 import com.sliit.smartcampus.service.ResourceService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -74,8 +75,29 @@ public class ResourceController {
     }
 
     @DeleteMapping("/{id}")
-    public String delete(@PathVariable Long id) {
+    public ResponseEntity<String> delete(@PathVariable Long id) {
         service.delete(id);
-        return "Deleted successfully";
+        return ResponseEntity.ok("Deleted successfully");
+    }
+
+    @PutMapping("/{id}/toggle-status")
+    public ResponseEntity<?> toggleStatus(@PathVariable Long id) {
+        try {
+            Resource resource = service.getById(id);
+
+            if (resource == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            if (resource.getStatus() == ResourceStatus.ACTIVE) {
+                resource.setStatus(ResourceStatus.OUT_OF_SERVICE);
+            } else {
+                resource.setStatus(ResourceStatus.ACTIVE);
+            }
+
+            return ResponseEntity.ok(service.save(resource));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to toggle status");
+        }
     }
 }
