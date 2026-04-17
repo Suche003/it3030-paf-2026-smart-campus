@@ -366,3 +366,31 @@
     width: 100%;
   }
 }
+
+.status-toggle-btn {
+  border: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.25s ease;
+  color: #fff;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+/* ACTIVE */
+.status-toggle-btn.active {
+  background: linear-gradient(90deg, #22c55e, #16a34a);
+  box-shadow: 0 6px 14px rgba(34, 197, 94, 0.25);
+}
+
+/* OUT OF SERVICE */
+.status-toggle-btn.inactive {
+  background: linear-gradient(90deg, #ff2b6a, #ff5c8a);
+  box-shadow: 0 6px 14px rgba(255, 43, 106, 0.25);
+}
+
+.status-toggle-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+}

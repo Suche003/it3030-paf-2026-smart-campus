@@ -5,7 +5,8 @@ import toast from 'react-hot-toast'
 import {
   getAllResources,
   deleteResource,
-  searchResources
+  searchResources,
+  toggleResourceStatus // 🔥 NEW
 } from '../services/resourceService'
 
 import {
@@ -25,13 +26,12 @@ export default function AdminResourceListPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // 🔥 modal states
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
   const allTypes = [...FACULTY_RESOURCE_TYPES, ...COMMON_RESOURCE_TYPES]
 
-  // LOAD DATA
+  // LOAD
   const loadResources = async () => {
     setLoading(true)
     setError('')
@@ -52,7 +52,25 @@ export default function AdminResourceListPage() {
     loadResources()
   }, [])
 
-  // 🔥 MODAL CONTROL
+  // 🔥 STATUS TOGGLE
+  const handleToggleStatus = async (resource) => {
+    try {
+      await toggleResourceStatus(resource.id)
+
+      toast.success(
+        resource.status === 'ACTIVE'
+          ? 'Marked as OUT OF SERVICE'
+          : 'Marked as ACTIVE'
+      )
+
+      loadResources()
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to update status')
+    }
+  }
+
+  // DELETE
   const openDeleteModal = (resource) => {
     setDeleteTarget(resource)
     setDeleteModalOpen(true)
@@ -228,10 +246,20 @@ export default function AdminResourceListPage() {
                   <td>{resource.capacity}</td>
                   <td>{resource.location}</td>
 
+                  {/* 🔥 STATUS BUTTON */}
                   <td>
-                    <span className="status-badge active">
-                      {resource.status}
-                    </span>
+                    <button
+                      onClick={() => handleToggleStatus(resource)}
+                      className={`status-toggle-btn ${
+                        resource.status === 'ACTIVE'
+                          ? 'active'
+                          : 'inactive'
+                      }`}
+                    >
+                      {resource.status === 'ACTIVE'
+                        ? 'ACTIVE'
+                        : 'OUT OF SERVICE'}
+                    </button>
                   </td>
 
                   <td>
@@ -257,13 +285,12 @@ export default function AdminResourceListPage() {
         </div>
       )}
 
-      {/* 🔥 CONFIRM MODAL */}
       <ConfirmModal
         isOpen={deleteModalOpen}
         title="Delete Resource?"
         message={
           deleteTarget
-            ? `Are you sure you want to delete ${deleteTarget.name} (${deleteTarget.codeName})? This action cannot be undone.`
+            ? `Are you sure you want to delete ${deleteTarget.name} (${deleteTarget.codeName})?`
             : ''
         }
         confirmText="Delete"
