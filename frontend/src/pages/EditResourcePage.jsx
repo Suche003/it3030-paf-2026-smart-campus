@@ -93,47 +93,47 @@ export default function EditResourcePage() {
 
   const isFormValid = () => {
     const fields = ['name', 'label', 'type', 'codeName', 'capacity', 'location']
-
-    return fields.every((field) => {
-      return formData[field] && !validateValue(field, formData[field])
-    })
+    return fields.every((field) => formData[field] && !validateValue(field, formData[field]))
   }
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    let updatedValue = name === 'codeName' ? value.toUpperCase() : value
+
+    if (name === 'codeName') {
+      return
+    }
 
     setTouched((prev) => ({ ...prev, [name]: true }))
 
     if (name === 'label') {
-      const prefix = getCodePrefixByLabel(updatedValue)
-
       const updatedData = {
         ...formData,
-        label: updatedValue,
-        type: '',
-        codeName: prefix
+        label: value,
+        type: ''
       }
 
       setFormData(updatedData)
 
-      validateField('label', updatedValue, updatedData)
+      validateField('label', value, updatedData)
       validateField('type', '', updatedData)
-      validateField('codeName', prefix, updatedData)
+      validateField('codeName', updatedData.codeName, updatedData)
       return
     }
 
     const updatedData = {
       ...formData,
-      [name]: updatedValue
+      [name]: value
     }
 
     setFormData(updatedData)
-    validateField(name, updatedValue, updatedData)
+    validateField(name, value, updatedData)
   }
 
   const handleBlur = (e) => {
     const { name, value } = e.target
+
+    if (name === 'codeName') return
+
     setTouched((prev) => ({ ...prev, [name]: true }))
     validateField(name, value)
   }
@@ -169,7 +169,7 @@ export default function EditResourcePage() {
       navigate('/admin/resources')
     } catch (error) {
       console.error(error)
-      toast.error('Failed to update resource')
+      toast.error(error.response?.data || 'Failed to update resource')
     }
   }
 
@@ -179,7 +179,7 @@ export default function EditResourcePage() {
         <div>
           <h1 className="form-page-title">Edit Resource</h1>
           <p className="form-page-subtitle">
-            Update resource category, type, code, capacity, location and status.
+            Update resource details. Resource code cannot be changed after creation.
           </p>
         </div>
 
@@ -189,29 +189,21 @@ export default function EditResourcePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="resource-form-card" noValidate>
-        {[
-          ['name', 'Resource Name', 'text'],
-          ['codeName', 'Resource Code', 'text'],
-          ['capacity', 'Capacity', 'number'],
-          ['location', 'Location', 'text']
-        ].map(([name, label, type]) => (
-          <div className="form-group" key={name}>
-            <label>{label}</label>
-            <div className="input-wrap">
-              <input
-                type={type}
-                name={name}
-                value={formData[name]}
-                onChange={handleChange}
-                onBlur={handleBlur}
-                maxLength={name === 'codeName' ? 5 : undefined}
-                className={errors[name] ? 'error' : isFieldValid(name) ? 'valid' : ''}
-              />
-              {isFieldValid(name) && <span className="valid-check">✓</span>}
-            </div>
-            {errors[name] && <p className="field-error">{errors[name]}</p>}
+        <div className="form-group">
+          <label>Resource Name</label>
+          <div className="input-wrap">
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={errors.name ? 'error' : isFieldValid('name') ? 'valid' : ''}
+            />
+            {isFieldValid('name') && <span className="valid-check">✓</span>}
           </div>
-        ))}
+          {errors.name && <p className="field-error">{errors.name}</p>}
+        </div>
 
         <div className="form-group">
           <label>Faculty / Category</label>
@@ -254,6 +246,55 @@ export default function EditResourcePage() {
             {isFieldValid('type') && <span className="valid-check">✓</span>}
           </div>
           {errors.type && <p className="field-error">{errors.type}</p>}
+        </div>
+
+        <div className="form-group">
+          <label>Resource Code</label>
+          <div className="input-wrap">
+            <input
+              type="text"
+              name="codeName"
+              value={formData.codeName}
+              readOnly
+              className="readonly-input valid"
+            />
+            <span className="valid-check">✓</span>
+          </div>
+          <p className="field-hint">
+            Resource code is permanent. Delete and recreate the resource to use a new code.
+          </p>
+        </div>
+
+        <div className="form-group">
+          <label>Capacity</label>
+          <div className="input-wrap">
+            <input
+              type="number"
+              name="capacity"
+              value={formData.capacity}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={errors.capacity ? 'error' : isFieldValid('capacity') ? 'valid' : ''}
+            />
+            {isFieldValid('capacity') && <span className="valid-check">✓</span>}
+          </div>
+          {errors.capacity && <p className="field-error">{errors.capacity}</p>}
+        </div>
+
+        <div className="form-group">
+          <label>Location</label>
+          <div className="input-wrap">
+            <input
+              type="text"
+              name="location"
+              value={formData.location}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              className={errors.location ? 'error' : isFieldValid('location') ? 'valid' : ''}
+            />
+            {isFieldValid('location') && <span className="valid-check">✓</span>}
+          </div>
+          {errors.location && <p className="field-error">{errors.location}</p>}
         </div>
 
         <div className="form-group">
