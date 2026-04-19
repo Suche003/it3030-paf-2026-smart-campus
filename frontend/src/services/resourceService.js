@@ -24,6 +24,5 @@ export const filterResourcesByType = (type) =>
 export const getNextResourceCode = (label) =>
   axios.get(`${API_URL}/next-code?label=${encodeURIComponent(label)}`)
 
-export const toggleResourceStatus = (id) => {
-  return axios.put(`/api/resources/${id}/toggle-status`)
-}
+export const toggleResourceStatus = (id) =>
+  axios.put(`${API_URL}/${id}/toggle-status`)

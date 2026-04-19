@@ -4,10 +4,28 @@ import com.sliit.smartcampus.entity.Resource;
 import com.sliit.smartcampus.repository.ResourceRepository;
 import org.springframework.stereotype.Service;
 
+import com.sliit.smartcampus.enumtypes.ResourceStatus;
+
 import java.util.List;
 
 @Service
 public class ResourceService {
+
+    public Resource toggleStatus(Long id) {
+    Resource resource = repository.findById(id).orElse(null);
+
+    if (resource == null) {
+        return null;
+    }
+
+    if (resource.getStatus() == ResourceStatus.ACTIVE) {
+        resource.setStatus(ResourceStatus.OUT_OF_SERVICE);
+    } else {
+        resource.setStatus(ResourceStatus.ACTIVE);
+    }
+
+    return repository.save(resource);
+}
 
     private final ResourceRepository repository;
 
