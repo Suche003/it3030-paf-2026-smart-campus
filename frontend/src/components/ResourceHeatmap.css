@@ -1,0 +1,111 @@
+.heatmap-container {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 24px;
+  padding: 20px;
+  margin: 20px 0;
+}
+.heatmap-container h4 {
+  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+}
+.charts-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+.chart-box {
+  flex: 1;
+  min-width: 250px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 16px;
+  padding: 16px;
+}
+.chart-box h5 {
+  margin: 0 0 12px 0;
+  font-size: 1rem;
+  color: #ccc;
+}
+/* Resource bars */
+.resource-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.resource-bar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.resource-name {
+  width: 120px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bar-bg {
+  flex: 1;
+  height: 24px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #a855f7, #7c2cff);
+  border-radius: 12px;
+  transition: width 0.3s;
+}
+.resource-count {
+  width: 30px;
+  text-align: right;
+  font-weight: bold;
+  color: #a855f7;
+}
+/* Hour bars */
+.hour-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 200px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.hour-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 40px;
+}
+.hour-label {
+  font-size: 0.7rem;
+  color: #aaa;
+}
+.hour-bar-bg {
+  width: 28px;
+  height: 160px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 8px;
+  margin: 6px 0;
+  position: relative;
+}
+.hour-bar-fill {
+  width: 100%;
+  background: linear-gradient(0deg, #ff2f92, #ff8ca8);
+  border-radius: 8px;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  transition: height 0.3s;
+}
+.hour-count {
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+.heatmap-empty {
+  text-align: center;
+  padding: 30px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 16px;
+  color: #aaa;
+}

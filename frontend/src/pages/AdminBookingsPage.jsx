@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getAllBookings, approveBooking, rejectBooking } from '../services/bookingService';
+import ResourceHeatmap from '../components/ResourceHeatmap';
 import '../styles/AdminBookings.css';
 
 export default function AdminBookingsPage() {
@@ -101,7 +102,7 @@ export default function AdminBookingsPage() {
     }
   };
 
-  // ========== EXPORT CSV ==========
+  // EXPORT CSV
   const handleExportCSV = () => {
     if (filteredBookings.length === 0) {
       alert('No bookings to export');
@@ -133,14 +134,13 @@ export default function AdminBookingsPage() {
     URL.revokeObjectURL(url);
   };
 
-  // ========== EXPORT PDF (beautiful print version) ==========
+  // EXPORT PDF 
   const handleExportPDF = () => {
     if (filteredBookings.length === 0) {
       alert('No bookings to export');
       return;
     }
     const printWindow = window.open('', '_blank');
-    const title = 'Bookings Report';
     const date = new Date().toLocaleString();
     const filterText = activeFilter === 'ALL' ? 'All Bookings' : 
                        activeFilter === 'TODAY' ? 'Today\'s Bookings' : 
@@ -149,7 +149,7 @@ export default function AdminBookingsPage() {
     let rowsHtml = '';
     filteredBookings.forEach(b => {
       rowsHtml += `
-        <td>
+        <tr>
           <td>${b.id}</td>
           <td>${b.userEmail || `User ${b.userId}`}</td>
           <td>${b.resourceName || `Resource ${b.resourceId}`}</td>
@@ -334,6 +334,9 @@ export default function AdminBookingsPage() {
           </div>
         </div>
       )}
+
+      {/* ✅ RESOURCE HEATMAP - appears when analytics is visible */}
+      {showAnalytics && <ResourceHeatmap bookings={bookings} />}
 
       <div className="filter-section">
         <div className="filter-buttons">
