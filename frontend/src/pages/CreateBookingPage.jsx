@@ -199,14 +199,33 @@ export default function CreateBookingPage() {
       else if (role === 'TECHNICIAN') navigate('/technician');
       else navigate('/my-bookings');
     } catch (err) {
+      console.error('Full error object:', err);
+      console.error('Error response:', err.response);
+      
+      // Robust error message extraction
+      let errorMsg = 'Failed to create booking.';
+      if (err.response) {
+        if (typeof err.response.data === 'string') {
+          errorMsg = err.response.data;
+        } else if (err.response.data?.message) {
+          errorMsg = err.response.data.message;
+        } else if (err.response.data?.error) {
+          errorMsg = err.response.data.error;
+        } else if (err.response.statusText) {
+          errorMsg = err.response.statusText;
+        }
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      
+      setError(`⚠️ ${errorMsg}`);
+      
       if (err.response?.status === 401) {
         setError('Session expired. Please login again.');
         localStorage.clear();
         setTimeout(() => navigate('/login'), 2000);
       } else if (err.response?.status === 403) {
         setError('You don\'t have permission to create bookings.');
-      } else {
-        setError(err.response?.data?.message || 'Failed to create booking.');
       }
     } finally {
       setLoading(false);
