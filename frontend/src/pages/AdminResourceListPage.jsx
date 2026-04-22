@@ -6,7 +6,7 @@ import {
   getAllResources,
   deleteResource,
   searchResources,
-  toggleResourceStatus // 🔥 NEW
+  toggleResourceStatus
 } from '../services/resourceService'
 
 import {
@@ -31,7 +31,6 @@ export default function AdminResourceListPage() {
 
   const allTypes = [...FACULTY_RESOURCE_TYPES, ...COMMON_RESOURCE_TYPES]
 
-  // LOAD
   const loadResources = async () => {
     setLoading(true)
     setError('')
@@ -52,15 +51,14 @@ export default function AdminResourceListPage() {
     loadResources()
   }, [])
 
-  // 🔥 STATUS TOGGLE
   const handleToggleStatus = async (resource) => {
     try {
       await toggleResourceStatus(resource.id)
 
       toast.success(
         resource.status === 'ACTIVE'
-          ? 'Marked as OUT OF SERVICE'
-          : 'Marked as ACTIVE'
+          ? 'Marked as Unavailable'
+          : 'Marked as Active'
       )
 
       loadResources()
@@ -70,7 +68,6 @@ export default function AdminResourceListPage() {
     }
   }
 
-  // DELETE
   const openDeleteModal = (resource) => {
     setDeleteTarget(resource)
     setDeleteModalOpen(true)
@@ -95,7 +92,6 @@ export default function AdminResourceListPage() {
     }
   }
 
-  // SEARCH
   const handleSearch = async () => {
     try {
       if (!searchTerm.trim()) {
@@ -112,7 +108,6 @@ export default function AdminResourceListPage() {
     }
   }
 
-  // FILTER
   const handleFilter = async () => {
     try {
       if (!filterType || !filterValue) {
@@ -147,8 +142,6 @@ export default function AdminResourceListPage() {
 
   return (
     <div className="page-container">
-
-      {/* HEADER */}
       <div className="page-header">
         <div>
           <h1 className="page-title">Admin Resource Management</h1>
@@ -162,7 +155,6 @@ export default function AdminResourceListPage() {
         </Link>
       </div>
 
-      {/* TOOLBAR */}
       <div className="toolbar">
         <input
           type="text"
@@ -217,7 +209,6 @@ export default function AdminResourceListPage() {
         </button>
       </div>
 
-      {/* TABLE */}
       {resources.length === 0 ? (
         <p className="info-text">No resources found.</p>
       ) : (
@@ -239,48 +230,44 @@ export default function AdminResourceListPage() {
             <tbody>
               {resources.map((resource) => (
                 <tr key={resource.id}>
-                  <td>{resource.codeName}</td>
-                  <td>{resource.name}</td>
+                  <td className="code-cell">{resource.codeName}</td>
+                  <td className="name-cell">{resource.name}</td>
                   <td>{resource.label}</td>
                   <td>{resource.type}</td>
                   <td>{resource.capacity}</td>
                   <td>{resource.location}</td>
 
-                  {/* 🔥 STATUS BUTTON */}
                   <td>
                     <button
                       onClick={() => handleToggleStatus(resource)}
                       className={`status-toggle-btn ${
-                        resource.status === 'ACTIVE'
-                          ? 'active'
-                          : 'inactive'
+                        resource.status === 'ACTIVE' ? 'active' : 'inactive'
                       }`}
                     >
-                      {resource.status === 'ACTIVE'
-                        ? 'ACTIVE'
-                        : 'OUT OF SERVICE'}
+                      {resource.status === 'ACTIVE' ? 'Active' : 'Unavailable'}
                     </button>
                   </td>
 
                   <td>
-                    <Link
-                      to={`/admin/resources/edit/${resource.id}`}
-                      className="table-btn edit-btn"
-                    >
-                      Edit
-                    </Link>
+                    <div className="action-buttons">
+                      <Link
+                        to={`/admin/resources/edit/${resource.id}`}
+                        className="table-btn edit-btn"
+                      >
+                        Edit
+                      </Link>
 
-                    <button
-                      onClick={() => openDeleteModal(resource)}
-                      className="table-btn delete-btn"
-                    >
-                      Delete
-                    </button>
+                      <button
+                        onClick={() => openDeleteModal(resource)}
+                        className="table-btn delete-btn"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
-
           </table>
         </div>
       )}
