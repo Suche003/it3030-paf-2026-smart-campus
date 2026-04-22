@@ -390,3 +390,154 @@
     grid-column: auto;
   }
 }
+
+/* ===== Final Premium Table Polish ===== */
+
+.table-wrapper {
+  padding: 28px;
+}
+
+.resource-table {
+  border-spacing: 0 18px;
+}
+
+.resource-table th {
+  padding: 0 20px 12px;
+  font-size: 0.8rem;
+  font-weight: 900;
+  color: rgba(234, 234, 242, 0.62);
+}
+
+.resource-table td {
+  padding: 24px 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.045));
+}
+
+.resource-table tbody tr td:first-child {
+  border-left: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.resource-table tbody tr td:last-child {
+  border-right: 1px solid rgba(255, 255, 255, 0.045);
+}
+
+.resource-table tbody tr:hover td {
+  background:
+    linear-gradient(180deg, rgba(255, 47, 146, 0.08), rgba(139, 61, 255, 0.06));
+}
+
+.code-cell {
+  color: #ffffff;
+  font-size: 0.98rem;
+}
+
+.name-cell {
+  color: #f3f3fb;
+  font-size: 0.98rem;
+}
+
+.status-toggle-btn {
+  min-width: 140px;
+  padding: 11px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.status-toggle-btn.active {
+  background: linear-gradient(90deg, #24d66f, #11a956);
+  box-shadow: 0 12px 28px rgba(36, 214, 111, 0.24);
+}
+
+.status-toggle-btn.inactive {
+  background: linear-gradient(90deg, #ff2b6a, #ff6b97);
+  box-shadow: 0 12px 28px rgba(255, 43, 106, 0.24);
+}
+
+.action-buttons {
+  align-items: stretch;
+}
+
+.table-btn {
+  min-width: 94px;
+  min-height: 42px;
+  font-size: 0.9rem;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.18);
+}
+
+.edit-btn {
+  background: linear-gradient(90deg, #842fff, #9c4dff);
+}
+
+.delete-btn {
+  background: linear-gradient(90deg, #ff2b6a, #ff477f);
+}
+
+.edit-btn:hover,
+.delete-btn:hover {
+  filter: brightness(1.08);
+}
+
+.resource-table th:nth-child(1),
+.resource-table td:nth-child(1) {
+  width: 120px;
+}
+
+.resource-table th:nth-child(2),
+.resource-table td:nth-child(2) {
+  width: 210px;
+}
+
+.code-cell {
+  white-space: nowrap;
+  overflow: visible !important;
+  text-overflow: unset !important;
+  font-family: Arial, sans-serif;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+}
+
+.name-cell {
+  font-size: 1rem;
+  line-height: 1.45;
+  color: #f5f5fb;
+}
+
+.resource-table td {
+  font-family: Arial, sans-serif;
+  font-size: 0.98rem;
+  letter-spacing: 0.01em;
+}
+
+.table-label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 900;
+  line-height: 1.2;
+  white-space: normal;
+  max-width: 100%;
+}
+
+.faculty-label {
+  color: #ffd6e8;
+  background: rgba(255, 47, 146, 0.12);
+  border: 1px solid rgba(255, 47, 146, 0.24);
+}
+
+.type-label {
+  color: #ddd2ff;
+  background: rgba(139, 61, 255, 0.13);
+  border: 1px solid rgba(139, 61, 255, 0.26);
+}
+
+.status-toggle-btn {
+  font-size: 0.78rem;
+}
+
+.table-btn {
+  font-size: 0.92rem;
+}
