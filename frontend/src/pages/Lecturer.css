@@ -326,3 +326,25 @@
     font-size: 0.8rem;
   }
 }
+
+.date-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.date-input {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 6px 10px;
+  color: white;
+}
+.clear-date {
+  background: none;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+}
+.clear-date:hover {
+  color: white;
+}
