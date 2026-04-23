@@ -10,13 +10,13 @@ export default function AdminBookingsPage() {
   const [error, setError] = useState('');
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(null);
   const [rejectReason, setRejectReason] = useState('');
   const [showAnalytics, setShowAnalytics] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
   const [actionLoading, setActionLoading] = useState(null);
 
-  // Load all bookings from API
   const loadBookings = async () => {
     setLoading(true);
     setError('');
@@ -42,7 +42,7 @@ export default function AdminBookingsPage() {
     return today.toISOString().split('T')[0];
   };
 
-  // Filter and search logic
+  // Filter logic including date picker
   useEffect(() => {
     let filtered = [...bookings];
     if (activeFilter !== 'ALL') {
@@ -53,6 +53,9 @@ export default function AdminBookingsPage() {
         filtered = filtered.filter(b => b.status === activeFilter);
       }
     }
+    if (selectedDate) {
+      filtered = filtered.filter(b => b.bookingDate === selectedDate);
+    }
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(b => 
@@ -62,7 +65,7 @@ export default function AdminBookingsPage() {
       );
     }
     setFilteredBookings(filtered);
-  }, [bookings, activeFilter, searchTerm]);
+  }, [bookings, activeFilter, searchTerm, selectedDate]);
 
   const showSuccess = (message) => {
     setSuccessMessage(message);
@@ -102,7 +105,6 @@ export default function AdminBookingsPage() {
     }
   };
 
-  // EXPORT CSV
   const handleExportCSV = () => {
     if (filteredBookings.length === 0) {
       alert('No bookings to export');
@@ -134,7 +136,6 @@ export default function AdminBookingsPage() {
     URL.revokeObjectURL(url);
   };
 
-  // EXPORT PDF 
   const handleExportPDF = () => {
     if (filteredBookings.length === 0) {
       alert('No bookings to export');
@@ -168,81 +169,29 @@ export default function AdminBookingsPage() {
       <head>
         <title>Bookings Report</title>
         <style>
-          body {
-            font-family: 'Segoe UI', Arial, sans-serif;
-            margin: 40px;
-            color: #333;
-          }
-          h1 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
-          }
-          .report-meta {
-            margin: 20px 0;
-            color: #555;
-            font-size: 14px;
-          }
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-          }
-          th {
-            background: #3498db;
-            color: white;
-            padding: 12px;
-            text-align: left;
-          }
-          td {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-          }
-          tr:hover {
-            background: #f5f5f5;
-          }
-          .footer {
-            margin-top: 30px;
-            font-size: 12px;
-            text-align: center;
-            color: #777;
-            border-top: 1px solid #eee;
-            padding-top: 20px;
-          }
-          @media print {
-            body { margin: 0; padding: 20px; }
-            .no-print { display: none; }
-          }
+          body { font-family: 'Segoe UI', Arial, sans-serif; margin: 40px; color: #333; }
+          h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+          .report-meta { margin: 20px 0; color: #555; font-size: 14px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th { background: #3498db; color: white; padding: 12px; text-align: left; }
+          td { padding: 10px; border-bottom: 1px solid #ddd; }
+          tr:hover { background: #f5f5f5; }
+          .footer { margin-top: 30px; font-size: 12px; text-align: center; color: #777; border-top: 1px solid #eee; padding-top: 20px; }
+          @media print { body { margin: 0; padding: 20px; } }
         </style>
       </head>
       <body>
         <h1>📋 Smart Campus - Bookings Report</h1>
-        <div class="report-meta">
-          <strong>Filter:</strong> ${filterText}<br>
-          <strong>Generated:</strong> ${date}<br>
-          <strong>Total Records:</strong> ${filteredBookings.length}
-        </div>
-        <table>
-          <thead>
-            <tr><th>ID</th><th>User</th><th>Resource</th><th>Date</th><th>Time</th><th>Purpose</th><th>Attendees</th><th>Status</th></tr>
-          </thead>
-          <tbody>
-            ${rowsHtml}
-          </tbody>
-        </table>
-        <div class="footer">
-          Smart Campus Operations Hub - Booking Management Report
-        </div>
-        <script>
-          window.onload = function() { window.print(); setTimeout(() => window.close(), 500); };
-        </script>
+        <div class="report-meta"><strong>Filter:</strong> ${filterText}<br><strong>Generated:</strong> ${date}<br><strong>Total Records:</strong> ${filteredBookings.length}</div>
+        <table><thead><tr><th>ID</th><th>User</th><th>Resource</th><th>Date</th><th>Time</th><th>Purpose</th><th>Attendees</th><th>Status</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+        <div class="footer">Smart Campus Operations Hub - Booking Management Report</div>
+        <script>window.onload = function() { window.print(); setTimeout(() => window.close(), 500); };</script>
       </body>
       </html>
     `);
     printWindow.document.close();
   };
 
-  // Helper for status badge display
   const getStatusBadge = (status) => {
     const config = {
       PENDING: { class: 'status-pending', icon: '⏳', label: 'Pending' },
@@ -263,7 +212,6 @@ export default function AdminBookingsPage() {
     return bookings.filter(b => b.status === filterType).length;
   };
 
-  // Analytics data
   const analytics = {
     total: bookings.length,
     approved: bookings.filter(b => b.status === 'APPROVED').length,
@@ -335,7 +283,6 @@ export default function AdminBookingsPage() {
         </div>
       )}
 
-      {/* ✅ RESOURCE HEATMAP - appears when analytics is visible */}
       {showAnalytics && <ResourceHeatmap bookings={bookings} />}
 
       <div className="filter-section">
@@ -348,14 +295,13 @@ export default function AdminBookingsPage() {
           <button className={`filter-chip cancelled ${activeFilter === 'CANCELLED' ? 'active' : ''}`} onClick={() => setActiveFilter('CANCELLED')}>🚫 Cancelled <span className="count">{getCount('CANCELLED')}</span></button>
         </div>
         <div className="search-wrapper">
-          <input 
-            type="text" 
-            placeholder="🔍 Search by user, resource, or purpose..." 
-            value={searchTerm} 
-            onChange={(e) => setSearchTerm(e.target.value)} 
-            className="search-input" 
-          />
+          <input type="text" placeholder="🔍 Search by user, resource, or purpose..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="search-input" />
           {searchTerm && <button className="clear-search" onClick={() => setSearchTerm('')}>✕</button>}
+        </div>
+        <div className="date-filter">
+          <label>📅 Date: </label>
+          <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="date-input" />
+          {selectedDate && <button className="clear-date" onClick={() => setSelectedDate('')}>✕</button>}
         </div>
       </div>
 
@@ -374,17 +320,7 @@ export default function AdminBookingsPage() {
         <div className="table-container">
           <table className="bookings-table">
             <thead>
-              <tr>
-                <th>ID</th>
-                <th>User Email</th>
-                <th>Resource</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Purpose</th>
-                <th>Attendees</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
+              <tr><th>ID</th><th>User Email</th><th>Resource</th><th>Date</th><th>Time</th><th>Purpose</th><th>Attendees</th><th>Status</th><th>Actions</th></tr>
             </thead>
             <tbody>
               {filteredBookings.map((booking) => (
@@ -402,18 +338,10 @@ export default function AdminBookingsPage() {
                   <td className="col-actions">
                     {booking.status === 'PENDING' ? (
                       <div className="action-buttons">
-                        <button 
-                          className="btn-approve" 
-                          onClick={() => handleApprove(booking.id)} 
-                          disabled={actionLoading === booking.id}
-                        >
+                        <button className="btn-approve" onClick={() => handleApprove(booking.id)} disabled={actionLoading === booking.id}>
                           {actionLoading === booking.id ? '...' : '✅ Approve'}
                         </button>
-                        <button 
-                          className="btn-reject" 
-                          onClick={() => setShowRejectModal(booking.id)} 
-                          disabled={actionLoading === booking.id}
-                        >
+                        <button className="btn-reject" onClick={() => setShowRejectModal(booking.id)} disabled={actionLoading === booking.id}>
                           ❌ Reject
                         </button>
                       </div>
@@ -434,13 +362,7 @@ export default function AdminBookingsPage() {
               <button className="modal-close" onClick={() => setShowRejectModal(null)}>✕</button>
             </div>
             <div className="modal-body">
-              <textarea 
-                placeholder="Reason for rejection..." 
-                value={rejectReason} 
-                onChange={(e) => setRejectReason(e.target.value)} 
-                rows="4" 
-                autoFocus 
-              />
+              <textarea placeholder="Reason for rejection..." value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows="4" autoFocus />
             </div>
             <div className="modal-footer">
               <button className="modal-cancel" onClick={() => { setShowRejectModal(null); setRejectReason(''); }}>Cancel</button>
