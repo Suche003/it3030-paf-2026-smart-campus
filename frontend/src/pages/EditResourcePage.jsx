@@ -209,12 +209,13 @@ export default function EditResourcePage() {
           <label>Faculty / Category</label>
           <div className="input-wrap">
             <select
-              name="label"
-              value={formData.label}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={errors.label ? 'error' : isFieldValid('label') ? 'valid' : ''}
-            >
+                name="label"
+                value={formData.label}
+                disabled
+              >
+          <p className="field-hint">
+            Faculty cannot be changed once created.
+          </p>
               <option value="">Select category</option>
               {RESOURCE_LABELS.map((label) => (
                 <option key={label} value={label}>{label}</option>

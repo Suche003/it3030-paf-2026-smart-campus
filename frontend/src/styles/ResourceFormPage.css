@@ -257,3 +257,15 @@ select.error {
   font-size: 0.82rem;
   font-weight: 700;
 }
+
+.form-group select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.field-note {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+}
