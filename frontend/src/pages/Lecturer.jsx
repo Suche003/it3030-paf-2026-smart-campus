@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllBookings } from '../services/bookingService';
+import { getAllBookings, cancelBooking } from '../services/bookingService';
 import './Lecturer.css';
 
 function Lecturer() {
@@ -13,6 +13,7 @@ function Lecturer() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedDate, setSelectedDate] = useState('');
 
   const userEmail = localStorage.getItem('email');
   const userName = localStorage.getItem('name') || 'Lecturer';
@@ -36,8 +37,21 @@ function Lecturer() {
     loadBookings();
   }, []);
 
-  const handleNewBooking = () => {
-    navigate('/bookings/new');
+  const handleNewBooking = () => navigate('/bookings/new');
+
+  const handleEdit = (bookingId) => {
+    navigate(`/bookings/edit/${bookingId}`);
+  };
+
+  const handleCancel = async (bookingId) => {
+    if (!window.confirm('Are you sure you want to cancel this booking?')) return;
+    try {
+      await cancelBooking(bookingId);
+      alert('Booking cancelled successfully');
+      loadBookings();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to cancel booking');
+    }
   };
 
   const getStatusBadge = (status) => {
@@ -58,6 +72,7 @@ function Lecturer() {
 
   const filteredBookings = bookings.filter(b => {
     if (filterStatus !== 'ALL' && b.status !== filterStatus) return false;
+    if (selectedDate && b.bookingDate !== selectedDate) return false;
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       return (b.resourceName?.toLowerCase().includes(term) ||
@@ -123,12 +138,8 @@ function Lecturer() {
           <span className="subtitle">View all campus resource bookings</span>
         </div>
         <div className="header-buttons">
-          <button className="new-booking-btn" onClick={handleNewBooking}>
-            + New Booking
-          </button>
-          <div className="stats-badge">
-            <span>📋 Total: {stats.total} | ✅ Approved: {stats.approved}</span>
-          </div>
+          <button className="new-booking-btn" onClick={handleNewBooking}>+ New Booking</button>
+          <div className="stats-badge"><span>📋 Total: {stats.total} | ✅ Approved: {stats.approved}</span></div>
         </div>
       </div>
 
@@ -140,6 +151,10 @@ function Lecturer() {
           <button className={filterStatus === 'REJECTED' ? 'active' : ''} onClick={() => setFilterStatus('REJECTED')}>❌ Rejected ({stats.rejected})</button>
         </div>
         <input type="text" placeholder="🔍 Search by resource, user, purpose..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="search-input" />
+        <div className="date-filter">
+          <input type="date" value={selectedDate} onChange={e => setSelectedDate(e.target.value)} className="date-input" />
+          {selectedDate && <button onClick={() => setSelectedDate('')} className="clear-date">✕</button>}
+        </div>
       </div>
 
       <div className="view-toggle">
@@ -151,20 +166,44 @@ function Lecturer() {
         filteredBookings.length === 0 ? <div className="empty-state">No bookings match your filters.</div> :
         <div className="table-container">
           <table className="bookings-table">
-            <thead><tr><th>ID</th><th>Resource</th><th>User</th><th>Date</th><th>Time</th><th>Purpose</th><th>Status</th><th>Readiness</th></tr></thead>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Resource</th>
+                <th>User</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Purpose</th>
+                <th>Status</th>
+                <th>Readiness</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
             <tbody>
-              {filteredBookings.map(booking => (
-                <tr key={booking.id} onClick={() => setSelectedBooking(booking)} style={{ cursor: 'pointer' }}>
-                  <td>#{booking.id}</td>
-                  <td><strong>{booking.resourceName}</strong></td>
-                  <td>{booking.userEmail || `User ${booking.userId}`}</td>
-                  <td>{booking.bookingDate}</td>
-                  <td>{booking.startTime} - {booking.endTime}</td>
-                  <td>{booking.purpose?.substring(0, 50)}</td>
-                  <td>{getStatusBadge(booking.status)}</td>
-                  <td>{getReadinessBadge(booking)}</td>
-                </tr>
-              ))}
+              {filteredBookings.map(booking => {
+                const isOwner = booking.userEmail === userEmail;
+                const canEdit = isOwner && booking.status === 'PENDING';
+                return (
+                  <tr key={booking.id} onClick={() => setSelectedBooking(booking)} style={{ cursor: 'pointer' }}>
+                    <td>#{booking.id}</td>
+                    <td><strong>{booking.resourceName}</strong></td>
+                    <td>{booking.userEmail || `User ${booking.userId}`}</td>
+                    <td>{booking.bookingDate}</td>
+                    <td>{booking.startTime} - {booking.endTime}</td>
+                    <td>{booking.purpose?.substring(0, 50)}</td>
+                    <td>{getStatusBadge(booking.status)}</td>
+                    <td>{getReadinessBadge(booking)}</td>
+                    <td onClick={(e) => e.stopPropagation()}>
+                      {canEdit && (
+                        <div className="action-buttons">
+                          <button className="edit-btn-action" onClick={() => handleEdit(booking.id)}>✏️ Edit</button>
+                          <button className="cancel-btn-action" onClick={() => handleCancel(booking.id)}>❌ Cancel</button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -182,7 +221,10 @@ function Lecturer() {
       {selectedBooking && (
         <div className="modal-overlay" onClick={() => setSelectedBooking(null)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <div className="modal-header"><h3>📅 Booking Details</h3><button className="modal-close" onClick={() => setSelectedBooking(null)}>✕</button></div>
+            <div className="modal-header">
+              <h3>📅 Booking Details</h3>
+              <button className="modal-close" onClick={() => setSelectedBooking(null)}>✕</button>
+            </div>
             <div className="modal-body">
               <p><strong>Resource:</strong> {selectedBooking.resourceName}</p>
               <p><strong>User:</strong> {selectedBooking.userEmail || `User ${selectedBooking.userId}`}</p>
@@ -194,7 +236,9 @@ function Lecturer() {
               {selectedBooking.rejectReason && <p><strong>Rejection Reason:</strong> {selectedBooking.rejectReason}</p>}
               {selectedBooking.readiness_status === 'READY' && <p><strong>🔧 Resource Status:</strong> Ready for use</p>}
             </div>
-            <div className="modal-footer"><button className="modal-close-btn" onClick={() => setSelectedBooking(null)}>Close</button></div>
+            <div className="modal-footer">
+              <button className="modal-close-btn" onClick={() => setSelectedBooking(null)}>Close</button>
+            </div>
           </div>
         </div>
       )}
