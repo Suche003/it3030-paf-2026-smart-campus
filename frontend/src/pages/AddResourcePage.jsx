@@ -304,7 +304,7 @@ export default function AddResourcePage() {
           <label>Status</label>
           <select name="status" value={formData.status} onChange={handleChange}>
             <option value="ACTIVE">ACTIVE</option>
-            <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
+            <option value="OUT_OF_SERVICE">UNAVAILABLE</option>
           </select>
         </div>
 

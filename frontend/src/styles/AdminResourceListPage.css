@@ -449,3 +449,41 @@
     grid-column: auto;
   }
 }
+
+/* ===== Fix long faculty/type label pills ===== */
+
+.resource-table th:nth-child(3),
+.resource-table td:nth-child(3) {
+  width: 250px;
+}
+
+.resource-table th:nth-child(4),
+.resource-table td:nth-child(4) {
+  width: 190px;
+}
+
+.table-label {
+  justify-content: center;
+  text-align: center;
+  max-width: 185px;
+  min-height: 34px;
+  padding: 8px 14px;
+  white-space: normal !important;
+  line-height: 1.15;
+  overflow: visible;
+  text-overflow: unset;
+}
+
+.faculty-label {
+  max-width: 210px;
+}
+
+.type-label {
+  max-width: 170px;
+  white-space: nowrap !important;
+}
+
+.resource-table td:nth-child(3),
+.resource-table td:nth-child(4) {
+  overflow: visible;
+}
