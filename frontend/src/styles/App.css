@@ -1,0 +1,162 @@
+:root {
+  --bg: #0b0b12;
+  --bg-soft: #12121c;
+  --card: rgba(255, 255, 255, 0.06);
+  --card-strong: rgba(255, 255, 255, 0.09);
+  --text: #eaeaf2;
+  --muted: rgba(234, 234, 242, 0.72);
+  --border: rgba(255, 255, 255, 0.12);
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --accent: #7c2cff;
+  --accent2: #ff2b6a;
+  --success: #8bffb0;
+  --danger: #ff8ca8;
+  --shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+  width: 100%;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  color: var(--text);
+  background:
+    radial-gradient(circle at top left, rgba(255, 43, 106, 0.22), transparent 28%),
+    radial-gradient(circle at top right, rgba(124, 44, 255, 0.24), transparent 32%),
+    linear-gradient(135deg, #090910 0%, #0c0c16 45%, #0a0a14 100%);
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+.admin-module-shell {
+  min-height: 100vh;
+  width: 100%;
+  padding: 48px 24px 80px;
+  display: flex;
+  justify-content: center;
+}
+
+/* ===== GLOBAL BUTTON RESET ===== */
+button,
+a,
+.primary-link-btn,
+.table-btn {
+  text-decoration: none !important;
+  color: #ffffff !important;
+}
+
+/* ===== PRIMARY GRADIENT BUTTON ===== */
+.primary-link-btn,
+.submit-btn,
+.search-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 12px 22px;
+  border-radius: 14px;
+
+  font-weight: 700;
+  font-size: 0.95rem;
+
+  background: linear-gradient(135deg, #ff2f92, #8b3dff);
+  color: #fff !important;
+
+  border: none;
+  cursor: pointer;
+
+  transition: all 0.25s ease;
+  box-shadow: 0 10px 25px rgba(255, 47, 146, 0.25);
+}
+
+/* HOVER */
+.primary-link-btn:hover,
+.submit-btn:hover,
+.search-btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 14px 30px rgba(255, 47, 146, 0.35);
+
+  /* 🔥 FIX: keep text white ALWAYS */
+  color: #fff !important;
+}
+
+/* ACTIVE CLICK */
+.primary-link-btn:active,
+.submit-btn:active,
+.search-btn:active {
+  transform: scale(0.96);
+}
+
+/* ===== SECONDARY BUTTON (RESET / BACK) ===== */
+.reset-btn,
+.back-link-btn {
+  padding: 12px 20px;
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+
+  color: #fff !important;
+  font-weight: 600;
+
+  transition: all 0.25s ease;
+}
+
+.reset-btn:hover,
+.back-link-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+}
+
+/* ===== TABLE BUTTONS ===== */
+.table-btn {
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* EDIT BUTTON */
+.edit-btn {
+  background: linear-gradient(135deg, #7c2cff, #a855f7);
+  color: white !important;
+}
+
+.edit-btn:hover {
+  background: linear-gradient(135deg, #6d28d9, #9333ea);
+}
+
+/* DELETE BUTTON */
+.delete-btn {
+  background: linear-gradient(135deg, #ff4d6d, #ff2b6a);
+  color: white !important;
+}
+
+.delete-btn:hover {
+  background: linear-gradient(135deg, #e11d48, #be123c);
+}
+
+/* ===== REMOVE BLUE LINK COLOR COMPLETELY ===== */
+a:hover,
+a:focus,
+a:active {
+  color: inherit !important;
+}
