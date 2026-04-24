@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
-import { createResource, getNextResourceCode } from '../services/resourceService'
+import { createResource } from '../services/resourceService'
 import {
   RESOURCE_LABELS,
   getResourceTypesByLabel,
@@ -22,299 +22,94 @@ export default function AddResourcePage() {
     status: 'ACTIVE'
   })
 
-  const [errors, setErrors] = useState({})
-  const [touched, setTouched] = useState({})
-  const [codeLoading, setCodeLoading] = useState(false)
-
   const availableTypes = getResourceTypesByLabel(formData.label)
 
-  const validateValue = (name, value, currentData = formData) => {
-    const prefix = getCodePrefixByLabel(currentData.label)
-
-    switch (name) {
-      case 'name':
-        return value.trim() ? '' : 'Resource name is required'
-
-      case 'label':
-        return value ? '' : 'Faculty / Category is required'
-
-      case 'type':
-        return value ? '' : 'Resource type is required'
-
-      case 'codeName':
-        if (!value.trim()) return 'Resource code is required'
-        if (prefix && !value.startsWith(prefix)) return `Code must start with ${prefix}`
-        if (!/^[A-Z]{2}\d{3}$/.test(value)) return 'Code must be like IT001'
-        return ''
-
-      case 'capacity':
-        return Number(value) > 0 ? '' : 'Capacity must be greater than 0'
-
-      case 'location':
-        return value.trim() ? '' : 'Location is required'
-
-      default:
-        return ''
-    }
-  }
-
-  const validateField = (name, value, currentData = formData) => {
-    const error = validateValue(name, value, currentData)
-    setErrors((prev) => ({ ...prev, [name]: error }))
-    return error
-  }
-
-  const isFieldValid = (name) => {
-    return touched[name] && formData[name] && !errors[name]
-  }
-
-  const isFormValid = () => {
-    const fields = ['name', 'label', 'type', 'codeName', 'capacity', 'location']
-
-    return (
-      !codeLoading &&
-      fields.every((field) => formData[field] && !validateValue(field, formData[field]))
-    )
-  }
-
-  const handleChange = async (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target
-    let updatedValue = name === 'codeName' ? value.toUpperCase() : value
 
-    setTouched((prev) => ({ ...prev, [name]: true }))
+    const updatedValue =
+      name === 'capacity'
+        ? value.replace(/[^\d]/g, '')
+        : value
 
-    if (name === 'label') {
-      const updatedData = {
-        ...formData,
-        label: updatedValue,
-        type: '',
-        codeName: ''
-      }
-
-      setFormData(updatedData)
-
-      validateField('label', updatedValue, updatedData)
-      validateField('type', '', updatedData)
-
-      if (!updatedValue) {
-        validateField('codeName', '', updatedData)
-        return
-      }
-
-      try {
-        setCodeLoading(true)
-        const response = await getNextResourceCode(updatedValue)
-        const generatedCode = response.data
-
-        const finalData = {
-          ...updatedData,
-          codeName: generatedCode
-        }
-
-        setFormData(finalData)
-        setTouched((prev) => ({ ...prev, codeName: true }))
-        validateField('codeName', generatedCode, finalData)
-      } catch (error) {
-        console.error('Failed to generate code:', error)
-        setErrors((prev) => ({
-          ...prev,
-          codeName: 'Failed to generate resource code'
-        }))
-      } finally {
-        setCodeLoading(false)
-      }
-
-      return
-    }
-
-    const updatedData = {
-      ...formData,
-      [name]: updatedValue
-    }
-
-    setFormData(updatedData)
-    validateField(name, updatedValue, updatedData)
-  }
-
-  const handleBlur = (e) => {
-    const { name, value } = e.target
-    setTouched((prev) => ({ ...prev, [name]: true }))
-    validateField(name, value)
-  }
-
-  const validateForm = () => {
-    const fields = ['name', 'label', 'type', 'codeName', 'capacity', 'location']
-    const newErrors = {}
-    const newTouched = {}
-
-    fields.forEach((field) => {
-      newErrors[field] = validateValue(field, formData[field])
-      newTouched[field] = true
-    })
-
-    setErrors(newErrors)
-    setTouched(newTouched)
-
-    return Object.values(newErrors).every((error) => !error)
+    setFormData({ ...formData, [name]: updatedValue })
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!validateForm()) return
-
     try {
       await createResource({
         ...formData,
-        capacity: Number(formData.capacity)
+        capacity: parseInt(formData.capacity)
       })
 
-      toast.success('Resource added successfully')
+      toast.success('Created successfully')
       navigate('/admin/resources')
-    } catch (error) {
-      console.error(error)
-      toast.error('Failed to add resource')    
+    } catch {
+      toast.error('Creation failed')
     }
   }
 
   return (
     <div className="form-page-container">
       <div className="form-page-header">
-        <div>
-          <h1 className="form-page-title">Add Resource</h1>
-          <p className="form-page-subtitle">
-            Create a new campus resource with auto-generated code.
-          </p>
-        </div>
-
-        <Link to="/admin/resources" className="back-link-btn">
-          Back to Resources
-        </Link>
+        <h1>Add Resource</h1>
+        <Link to="/admin/resources" className="back-link-btn">Back</Link>
       </div>
 
-      <form onSubmit={handleSubmit} className="resource-form-card" noValidate>
+      <form onSubmit={handleSubmit} className="resource-form-card">
+
         <div className="form-group">
-          <label>Resource Name</label>
-          <div className="input-wrap">
-            <input
-              name="name"
-              placeholder="Example: Lecture Hall A"
-              value={formData.name}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={errors.name ? 'error' : isFieldValid('name') ? 'valid' : ''}
-            />
-            {isFieldValid('name') && <span className="valid-check">✓</span>}
-          </div>
-          {errors.name && <p className="field-error">{errors.name}</p>}
+          <label>Name</label>
+          <input name="name" value={formData.name} onChange={handleChange} />
         </div>
 
         <div className="form-group">
-          <label>Faculty / Category</label>
-          <div className="input-wrap">
-            <select
-              name="label"
-              value={formData.label}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={errors.label ? 'error' : isFieldValid('label') ? 'valid' : ''}
-            >
-              <option value="">Select category</option>
-              {RESOURCE_LABELS.map((label) => (
-                <option key={label} value={label}>{label}</option>
-              ))}
-            </select>
-            {isFieldValid('label') && <span className="valid-check">✓</span>}
-          </div>
-          {errors.label && <p className="field-error">{errors.label}</p>}
+          <label>Faculty</label>
+          <select name="label" value={formData.label} onChange={handleChange}>
+            <option value="">Select</option>
+            {RESOURCE_LABELS.map(l => <option key={l}>{l}</option>)}
+          </select>
         </div>
 
         <div className="form-group">
-          <label>Resource Type</label>
-          <div className="input-wrap">
-            <select
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              disabled={!formData.label}
-              className={errors.type ? 'error' : isFieldValid('type') ? 'valid' : ''}
-            >
-              <option value="">
-                {formData.label ? 'Select type' : 'Select category first'}
-              </option>
-              {availableTypes.map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-            {isFieldValid('type') && <span className="valid-check">✓</span>}
-          </div>
-          {errors.type && <p className="field-error">{errors.type}</p>}
+          <label>Type</label>
+          <select name="type" value={formData.type} onChange={handleChange}>
+            {availableTypes.map(t => <option key={t}>{t}</option>)}
+          </select>
         </div>
 
         <div className="form-group">
-          <label>Resource Code</label>
-          <div className="input-wrap">
-            <input
-              name="codeName"
-              placeholder="Auto generated"
-              value={codeLoading ? 'Generating...' : formData.codeName}
-              readOnly
-              className={errors.codeName ? 'error' : isFieldValid('codeName') ? 'valid' : ''}
-            />
-            {isFieldValid('codeName') && <span className="valid-check">✓</span>}
-          </div>
-          {errors.codeName && <p className="field-error">{errors.codeName}</p>}
+          <label>Code</label>
+          <input name="codeName" value={formData.codeName} onChange={handleChange} />
         </div>
 
         <div className="form-group">
           <label>Capacity</label>
-          <div className="input-wrap">
-            <input
-              type="number"
-              name="capacity"
-              placeholder="Example: 100"
-              value={formData.capacity}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={errors.capacity ? 'error' : isFieldValid('capacity') ? 'valid' : ''}
-            />
-            {isFieldValid('capacity') && <span className="valid-check">✓</span>}
-          </div>
-          {errors.capacity && <p className="field-error">{errors.capacity}</p>}
+          <input
+            type="text"
+            inputMode="numeric"
+            name="capacity"
+            value={formData.capacity}
+            onChange={handleChange}
+          />
         </div>
 
         <div className="form-group">
           <label>Location</label>
-          <div className="input-wrap">
-            <input
-              name="location"
-              placeholder="Example: Building A - Floor 2"
-              value={formData.location}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={errors.location ? 'error' : isFieldValid('location') ? 'valid' : ''}
-            />
-            {isFieldValid('location') && <span className="valid-check">✓</span>}
-          </div>
-          {errors.location && <p className="field-error">{errors.location}</p>}
+          <input name="location" value={formData.location} onChange={handleChange} />
         </div>
 
         <div className="form-group">
           <label>Status</label>
           <select name="status" value={formData.status} onChange={handleChange}>
-            <option value="ACTIVE">ACTIVE</option>
+            <option value="ACTIVE">AVAILABLE</option>
             <option value="OUT_OF_SERVICE">UNAVAILABLE</option>
           </select>
         </div>
 
-        <button
-          type="submit"
-          className={`submit-btn ${!isFormValid() ? 'disabled-btn' : ''}`}
-          disabled={!isFormValid()}
-        >
-          Save Resource
-        </button>
+        <button className="submit-btn">Add Resource</button>
       </form>
     </div>
   )

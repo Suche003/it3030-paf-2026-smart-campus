@@ -34,283 +34,148 @@ export default function EditResourcePage() {
 
   const loadResource = async () => {
     try {
-      const response = await getResourceById(id)
+      const res = await getResourceById(id)
 
       setFormData({
-        name: response.data.name || '',
-        label: response.data.label || '',
-        type: response.data.type || '',
-        codeName: response.data.codeName || '',
-        capacity: response.data.capacity || '',
-        location: response.data.location || '',
-        status: response.data.status || 'ACTIVE'
+        name: res.data.name || '',
+        label: res.data.label || '',
+        type: res.data.type || '',
+        codeName: res.data.codeName || '',
+        capacity: res.data.capacity?.toString() || '',
+        location: res.data.location || '',
+        status: res.data.status || 'ACTIVE'
       })
-    } catch (error) {
-      console.error('Error loading resource:', error)
+    } catch (err) {
       toast.error('Failed to load resource')
     }
   }
 
-  const validateValue = (name, value, currentData = formData) => {
-    const prefix = getCodePrefixByLabel(currentData.label)
-
+  const validateValue = (name, value) => {
     switch (name) {
       case 'name':
-        return value.trim() ? '' : 'Resource name is required'
-
-      case 'label':
-        return value ? '' : 'Faculty / Category is required'
+        return value.trim() ? '' : 'Required'
 
       case 'type':
-        return value ? '' : 'Resource type is required'
-
-      case 'codeName':
-        if (!value.trim()) return 'Resource code is required'
-        if (prefix && !value.startsWith(prefix)) return `Code must start with ${prefix}`
-        if (!/^[A-Z]{2}\d{3}$/.test(value)) return 'Code must be like IT001'
-        return ''
+        return value ? '' : 'Required'
 
       case 'capacity':
-        return Number(value) > 0 ? '' : 'Capacity must be greater than 0'
+        if (!value) return 'Required'
+        if (!/^\d+$/.test(value)) return 'Numbers only'
+        if (parseInt(value) <= 0) return 'Must be > 0'
+        return ''
 
       case 'location':
-        return value.trim() ? '' : 'Location is required'
+        return value.trim() ? '' : 'Required'
 
       default:
         return ''
     }
   }
 
-  const validateField = (name, value, currentData = formData) => {
-    const error = validateValue(name, value, currentData)
-    setErrors((prev) => ({ ...prev, [name]: error }))
-    return error
-  }
-
-  const isFieldValid = (name) => {
-    return touched[name] && formData[name] && !errors[name]
-  }
-
-  const isFormValid = () => {
-    const fields = ['name', 'label', 'type', 'codeName', 'capacity', 'location']
-    return fields.every((field) => formData[field] && !validateValue(field, formData[field]))
-  }
-
   const handleChange = (e) => {
     const { name, value } = e.target
 
-    if (name === 'codeName') {
-      return
-    }
+    if (name === 'codeName' || name === 'label') return
 
-    setTouched((prev) => ({ ...prev, [name]: true }))
+    const updatedValue =
+      name === 'capacity'
+        ? value.replace(/[^\d]/g, '')
+        : value
 
-    if (name === 'label') {
-      const updatedData = {
-        ...formData,
-        label: value,
-        type: ''
-      }
-
-      setFormData(updatedData)
-
-      validateField('label', value, updatedData)
-      validateField('type', '', updatedData)
-      validateField('codeName', updatedData.codeName, updatedData)
-      return
-    }
-
-    const updatedData = {
-      ...formData,
-      [name]: value
-    }
+    const updatedData = { ...formData, [name]: updatedValue }
 
     setFormData(updatedData)
-    validateField(name, value, updatedData)
-  }
+    setTouched({ ...touched, [name]: true })
 
-  const handleBlur = (e) => {
-    const { name, value } = e.target
-
-    if (name === 'codeName') return
-
-    setTouched((prev) => ({ ...prev, [name]: true }))
-    validateField(name, value)
-  }
-
-  const validateForm = () => {
-    const fields = ['name', 'label', 'type', 'codeName', 'capacity', 'location']
-    const newErrors = {}
-    const newTouched = {}
-
-    fields.forEach((field) => {
-      newErrors[field] = validateValue(field, formData[field])
-      newTouched[field] = true
+    setErrors({
+      ...errors,
+      [name]: validateValue(name, updatedValue)
     })
-
-    setErrors(newErrors)
-    setTouched(newTouched)
-
-    return Object.values(newErrors).every((error) => !error)
   }
+
+  const isValid = (name) => touched[name] && !errors[name]
+
+  const isFormValid = () =>
+    ['name', 'type', 'capacity', 'location'].every(
+      (f) => formData[f] && !validateValue(f, formData[f])
+    )
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (!validateForm()) return
+    if (!isFormValid()) return
 
     try {
       await updateResource(id, {
         ...formData,
-        capacity: Number(formData.capacity)
+        capacity: parseInt(formData.capacity)
       })
 
-      toast.success('Resource updated successfully')
+      toast.success('Updated successfully')
       navigate('/admin/resources')
-    } catch (error) {
-      console.error(error)
-      toast.error(error.response?.data || 'Failed to update resource')
+    } catch {
+      toast.error('Update failed')
     }
   }
 
   return (
     <div className="form-page-container">
       <div className="form-page-header">
-        <div>
-          <h1 className="form-page-title">Edit Resource</h1>
-          <p className="form-page-subtitle">
-            Update resource details. Resource code cannot be changed after creation.
-          </p>
-        </div>
-
-        <Link to="/admin/resources" className="back-link-btn">
-          Back to Resources
-        </Link>
+        <h1>Edit Resource</h1>
+        <Link to="/admin/resources" className="back-link-btn">Back</Link>
       </div>
 
-      <form onSubmit={handleSubmit} className="resource-form-card" noValidate>
+      <form onSubmit={handleSubmit} className="resource-form-card">
+
         <div className="form-group">
-          <label>Resource Name</label>
-          <div className="input-wrap">
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={errors.name ? 'error' : isFieldValid('name') ? 'valid' : ''}
-            />
-            {isFieldValid('name') && <span className="valid-check">✓</span>}
-          </div>
-          {errors.name && <p className="field-error">{errors.name}</p>}
+          <label>Name</label>
+          <input name="name" value={formData.name} onChange={handleChange} />
         </div>
 
         <div className="form-group">
-          <label>Faculty / Category</label>
-          <div className="input-wrap">
-            <select
-                name="label"
-                value={formData.label}
-                disabled
-              >
-          <p className="field-hint">
-            Faculty cannot be changed once created.
-          </p>
-              <option value="">Select category</option>
-              {RESOURCE_LABELS.map((label) => (
-                <option key={label} value={label}>{label}</option>
-              ))}
-            </select>
-            {isFieldValid('label') && <span className="valid-check">✓</span>}
-          </div>
-          {errors.label && <p className="field-error">{errors.label}</p>}
+          <label>Faculty</label>
+          <select value={formData.label} disabled>
+            {RESOURCE_LABELS.map(l => <option key={l}>{l}</option>)}
+          </select>
         </div>
 
         <div className="form-group">
-          <label>Resource Type</label>
-          <div className="input-wrap">
-            <select
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              disabled={!formData.label}
-              className={errors.type ? 'error' : isFieldValid('type') ? 'valid' : ''}
-            >
-              <option value="">
-                {formData.label ? 'Select type' : 'Select category first'}
-              </option>
-              {availableTypes.map((type) => (
-                <option key={type} value={type}>{type}</option>
-              ))}
-            </select>
-            {isFieldValid('type') && <span className="valid-check">✓</span>}
-          </div>
-          {errors.type && <p className="field-error">{errors.type}</p>}
+          <label>Type</label>
+          <select name="type" value={formData.type} onChange={handleChange}>
+            {availableTypes.map(t => <option key={t}>{t}</option>)}
+          </select>
         </div>
 
         <div className="form-group">
-          <label>Resource Code</label>
-          <div className="input-wrap">
-            <input
-              type="text"
-              name="codeName"
-              value={formData.codeName}
-              readOnly
-              className="readonly-input valid"
-            />
-            <span className="valid-check">✓</span>
-          </div>
-          <p className="field-hint">
-            Resource code is permanent. Delete and recreate the resource to use a new code.
-          </p>
+          <label>Code</label>
+          <input value={formData.codeName} readOnly />
         </div>
 
         <div className="form-group">
           <label>Capacity</label>
-          <div className="input-wrap">
-            <input
-              type="number"
-              name="capacity"
-              value={formData.capacity}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={errors.capacity ? 'error' : isFieldValid('capacity') ? 'valid' : ''}
-            />
-            {isFieldValid('capacity') && <span className="valid-check">✓</span>}
-          </div>
-          {errors.capacity && <p className="field-error">{errors.capacity}</p>}
+          <input
+            type="text"
+            inputMode="numeric"
+            name="capacity"
+            value={formData.capacity}
+            onChange={handleChange}
+          />
         </div>
 
         <div className="form-group">
           <label>Location</label>
-          <div className="input-wrap">
-            <input
-              type="text"
-              name="location"
-              value={formData.location}
-              onChange={handleChange}
-              onBlur={handleBlur}
-              className={errors.location ? 'error' : isFieldValid('location') ? 'valid' : ''}
-            />
-            {isFieldValid('location') && <span className="valid-check">✓</span>}
-          </div>
-          {errors.location && <p className="field-error">{errors.location}</p>}
+          <input name="location" value={formData.location} onChange={handleChange} />
         </div>
 
         <div className="form-group">
           <label>Status</label>
           <select name="status" value={formData.status} onChange={handleChange}>
-            <option value="ACTIVE">ACTIVE</option>
+            <option value="ACTIVE">AVAILABLE</option>
             <option value="OUT_OF_SERVICE">UNAVAILABLE</option>
           </select>
         </div>
 
-        <button
-          type="submit"
-          className={`submit-btn ${!isFormValid() ? 'disabled-btn' : ''}`}
-          disabled={!isFormValid()}
-        >
+        <button disabled={!isFormValid()} className="submit-btn">
           Update Resource
         </button>
       </form>
