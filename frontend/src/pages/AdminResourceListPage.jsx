@@ -232,12 +232,19 @@ export default function AdminResourceListPage() {
                 <tr key={resource.id}>
                   <td className="code-cell">{resource.codeName}</td>
                   <td className="name-cell">{resource.name}</td>
+
                   <td>
-                  <span className="table-label faculty-label">{resource.label}</span>
+                    <span className="table-label faculty-label">
+                      {resource.label}
+                    </span>
                   </td>
+
                   <td>
-                  <span className="table-label type-label">{resource.type}</span>
+                    <span className="table-label type-label">
+                      {resource.type}
+                    </span>
                   </td>
+
                   <td>{resource.capacity}</td>
                   <td>{resource.location}</td>
 

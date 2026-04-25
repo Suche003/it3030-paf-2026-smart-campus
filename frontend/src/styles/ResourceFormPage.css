@@ -13,15 +13,16 @@
   padding: 34px;
   border-radius: 28px;
   background:
-    linear-gradient(135deg, rgba(255, 43, 106, 0.16), rgba(124, 44, 255, 0.2)),
+    linear-gradient(135deg, rgba(255, 43, 106, 0.18), rgba(124, 44, 255, 0.22)),
     rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
   box-shadow: var(--shadow);
   margin-bottom: 26px;
 }
 
-.form-page-title {
+.form-page-title,
+.form-page-header h1 {
   margin: 0;
   font-size: clamp(2.2rem, 5vw, 3.4rem);
   line-height: 1.08;
@@ -62,9 +63,9 @@
   padding: 32px;
   border-radius: 28px;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.03));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.03));
   border: 1px solid var(--border);
-  backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
   box-shadow: var(--shadow);
 }
 
@@ -76,6 +77,10 @@
 .form-group label {
   font-weight: 900;
   color: var(--text);
+}
+
+.input-wrap {
+  position: relative;
 }
 
 .form-group input,
@@ -123,77 +128,12 @@
   background-color: rgba(255, 255, 255, 0.085);
 }
 
-.form-group select:disabled {
-  opacity: 0.55;
+.form-group select:disabled,
+.readonly-input {
+  opacity: 0.75;
   cursor: not-allowed;
-}
-
-.submit-btn {
-  width: 100%;
-  min-height: 56px;
-  border: none;
-  margin-top: 8px;
-  border-radius: 16px;
-  cursor: pointer;
-  font-weight: 900;
-  color: #fff !important;
-  background: linear-gradient(90deg, #ff2f92 0%, #8b3dff 100%);
-  box-shadow: 0 12px 24px rgba(255, 47, 146, 0.22);
-  transition: 0.25s ease;
-}
-
-.submit-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 16px 30px rgba(255, 47, 146, 0.3);
-}
-
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@media (max-width: 760px) {
-  .form-page-container {
-    width: min(100% - 24px, 780px);
-  }
-
-  .form-page-header {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 24px;
-  }
-
-  .back-link-btn {
-    width: 100%;
-  }
-
-  .resource-form-card {
-    padding: 24px;
-  }
-}
-
-.field-error {
-  color: #ff4d7a;
-  font-size: 0.85rem;
-  margin-top: 4px;
-  font-weight: 600;
-}
-
-input.error,
-select.error {
-  border: 1px solid #ff2b6a !important;
-  box-shadow: 0 0 0 3px rgba(255, 43, 106, 0.15);
-}
-
-.input-wrap {
-  position: relative;
+  background-color: rgba(255, 255, 255, 0.035) !important;
+  border-color: rgba(255, 255, 255, 0.08);
 }
 
 .field-error {
@@ -230,7 +170,35 @@ select.error {
   right: 42px;
 }
 
-.disabled-btn {
+.field-hint,
+.field-note {
+  margin: 2px 0 0;
+  color: rgba(234, 234, 242, 0.58);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.submit-btn {
+  width: 100%;
+  min-height: 56px;
+  border: none;
+  margin-top: 8px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 900;
+  color: #fff !important;
+  background: linear-gradient(90deg, #ff2f92 0%, #8b3dff 100%);
+  box-shadow: 0 12px 24px rgba(255, 47, 146, 0.22);
+  transition: 0.25s ease;
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 30px rgba(255, 47, 146, 0.3);
+}
+
+.disabled-btn,
+.submit-btn:disabled {
   opacity: 0.45;
   cursor: not-allowed !important;
   box-shadow: none !important;
@@ -240,32 +208,34 @@ select.error {
   transform: none;
 }
 
-.form-group input[readonly] {
-  opacity: 0.85;
-  cursor: not-allowed;
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.readonly-input {
-  opacity: 0.8;
-  cursor: not-allowed;
-  background-color: rgba(255, 255, 255, 0.035) !important;
-}
+@media (max-width: 760px) {
+  .form-page-container {
+    width: min(100% - 24px, 780px);
+  }
 
-.field-hint {
-  margin: 2px 0 0;
-  color: rgba(234, 234, 242, 0.58);
-  font-size: 0.82rem;
-  font-weight: 700;
-}
+  .form-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 24px;
+  }
 
-.form-group select:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
-}
+  .back-link-btn {
+    width: 100%;
+  }
 
-.field-note {
-  font-size: 0.75rem;
-  color: rgba(255,255,255,0.5);
+  .resource-form-card {
+    padding: 24px;
+  }
 }

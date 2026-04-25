@@ -4,8 +4,7 @@ import toast from 'react-hot-toast'
 import { createResource } from '../services/resourceService'
 import {
   RESOURCE_LABELS,
-  getResourceTypesByLabel,
-  getCodePrefixByLabel
+  getResourceTypesByLabel
 } from '../utils/resourceOptions'
 import '../styles/ResourceFormPage.css'
 

@@ -4,8 +4,7 @@ import toast from 'react-hot-toast'
 import { getResourceById, updateResource } from '../services/resourceService'
 import {
   RESOURCE_LABELS,
-  getResourceTypesByLabel,
-  getCodePrefixByLabel
+  getResourceTypesByLabel
 } from '../utils/resourceOptions'
 import '../styles/ResourceFormPage.css'
 
@@ -45,7 +44,7 @@ export default function EditResourcePage() {
         location: res.data.location || '',
         status: res.data.status || 'ACTIVE'
       })
-    } catch (err) {
+    } catch {
       toast.error('Failed to load resource')
     }
   }
@@ -92,8 +91,6 @@ export default function EditResourcePage() {
       [name]: validateValue(name, updatedValue)
     })
   }
-
-  const isValid = (name) => touched[name] && !errors[name]
 
   const isFormValid = () =>
     ['name', 'type', 'capacity', 'location'].every(

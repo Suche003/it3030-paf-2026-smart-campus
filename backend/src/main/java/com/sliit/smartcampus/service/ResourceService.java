@@ -1,31 +1,14 @@
 package com.sliit.smartcampus.service;
 
 import com.sliit.smartcampus.entity.Resource;
+import com.sliit.smartcampus.enumtypes.ResourceStatus;
 import com.sliit.smartcampus.repository.ResourceRepository;
 import org.springframework.stereotype.Service;
-
-import com.sliit.smartcampus.enumtypes.ResourceStatus;
 
 import java.util.List;
 
 @Service
 public class ResourceService {
-
-    public Resource toggleStatus(Long id) {
-    Resource resource = repository.findById(id).orElse(null);
-
-    if (resource == null) {
-        return null;
-    }
-
-    if (resource.getStatus() == ResourceStatus.ACTIVE) {
-        resource.setStatus(ResourceStatus.OUT_OF_SERVICE);
-    } else {
-        resource.setStatus(ResourceStatus.ACTIVE);
-    }
-
-    return repository.save(resource);
-}
 
     private final ResourceRepository repository;
 
@@ -48,18 +31,33 @@ public class ResourceService {
     public Resource update(Long id, Resource resource) {
         Resource existing = repository.findById(id).orElse(null);
 
-        if (existing != null) {
-            existing.setName(resource.getName());
-            existing.setCodeName(resource.getCodeName());
-            existing.setLabel(resource.getLabel());
-            existing.setType(resource.getType());
-            existing.setCapacity(resource.getCapacity());
-            existing.setLocation(resource.getLocation());
-            existing.setStatus(resource.getStatus());
-            return repository.save(existing);
+        if (existing == null) {
+            return null;
         }
 
-        return null;
+        existing.setName(resource.getName());
+        existing.setType(resource.getType());
+        existing.setCapacity(resource.getCapacity());
+        existing.setLocation(resource.getLocation());
+        existing.setStatus(resource.getStatus());
+
+        return repository.save(existing);
+    }
+
+    public Resource toggleStatus(Long id) {
+        Resource resource = repository.findById(id).orElse(null);
+
+        if (resource == null) {
+            return null;
+        }
+
+        if (resource.getStatus() == ResourceStatus.ACTIVE) {
+            resource.setStatus(ResourceStatus.OUT_OF_SERVICE);
+        } else {
+            resource.setStatus(ResourceStatus.ACTIVE);
+        }
+
+        return repository.save(resource);
     }
 
     public void delete(Long id) {
