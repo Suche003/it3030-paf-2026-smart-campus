@@ -12,5 +12,17 @@ export const updateResource = (id, resource) => axios.put(`${API_URL}/${id}`, re
 
 export const deleteResource = (id) => axios.delete(`${API_URL}/${id}`)
 
-export const searchResourcesByType = (type) =>
-  axios.get(`${API_URL}/search?type=${type}`)
+export const searchResources = (keyword) =>
+  axios.get(`${API_URL}/search?keyword=${encodeURIComponent(keyword)}`)
+
+export const filterResourcesByLabel = (label) =>
+  axios.get(`${API_URL}/filter/label?label=${encodeURIComponent(label)}`)
+
+export const filterResourcesByType = (type) =>
+  axios.get(`${API_URL}/filter/type?type=${encodeURIComponent(type)}`)
+
+export const getNextResourceCode = (label) =>
+  axios.get(`${API_URL}/next-code?label=${encodeURIComponent(label)}`)
+
+export const toggleResourceStatus = (id) =>
+  axios.put(`${API_URL}/${id}/toggle-status`)

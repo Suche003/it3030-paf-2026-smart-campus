@@ -1,8 +1,10 @@
 package com.sliit.smartcampus.controller;
 
 import com.sliit.smartcampus.entity.Resource;
+import com.sliit.smartcampus.enumtypes.ResourceStatus;
 import com.sliit.smartcampus.service.ResourceService;
 import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,13 +21,37 @@ public class ResourceController {
     }
 
     @PostMapping
-    public Resource create(@Valid @RequestBody Resource resource) {
-        return service.save(resource);
+    public ResponseEntity<?> create(@Valid @RequestBody Resource resource) {
+        try {
+            return ResponseEntity.ok(service.save(resource));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Resource code already exists");
+        }
     }
 
     @GetMapping
     public List<Resource> getAll() {
         return service.getAll();
+    }
+
+    @GetMapping("/next-code")
+    public String getNextCode(@RequestParam String label) {
+        return service.generateNextCode(label);
+    }
+
+    @GetMapping("/search")
+    public List<Resource> search(@RequestParam String keyword) {
+        return service.search(keyword);
+    }
+
+    @GetMapping("/filter/type")
+    public List<Resource> filterByType(@RequestParam String type) {
+        return service.findByType(type);
+    }
+
+    @GetMapping("/filter/label")
+    public List<Resource> filterByLabel(@RequestParam String label) {
+        return service.findByLabel(label);
     }
 
     @GetMapping("/{id}")
@@ -34,18 +60,44 @@ public class ResourceController {
     }
 
     @PutMapping("/{id}")
-    public Resource update(@PathVariable Long id, @Valid @RequestBody Resource resource) {
-        return service.update(id, resource);
+    public ResponseEntity<?> update(@PathVariable Long id, @Valid @RequestBody Resource resource) {
+        try {
+            Resource updatedResource = service.update(id, resource);
+
+            if (updatedResource == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            return ResponseEntity.ok(updatedResource);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Resource code already exists");
+        }
     }
 
     @DeleteMapping("/{id}")
-    public String delete(@PathVariable Long id) {
+    public ResponseEntity<String> delete(@PathVariable Long id) {
         service.delete(id);
-        return "Deleted successfully";
+        return ResponseEntity.ok("Deleted successfully");
     }
 
-    @GetMapping("/search")
-    public List<Resource> searchByType(@RequestParam String type) {
-        return service.findByType(type);
+    @PutMapping("/{id}/toggle-status")
+    public ResponseEntity<?> toggleStatus(@PathVariable Long id) {
+        try {
+            Resource resource = service.getById(id);
+
+            if (resource == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            if (resource.getStatus() == ResourceStatus.ACTIVE) {
+                resource.setStatus(ResourceStatus.OUT_OF_SERVICE);
+            } else {
+                resource.setStatus(ResourceStatus.ACTIVE);
+            }
+
+            return ResponseEntity.ok(service.save(resource));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to toggle status");
+        }
     }
 }

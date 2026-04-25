@@ -1,17 +1,35 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
+
 import {
   getAllResources,
   deleteResource,
-  searchResourcesByType
+  searchResources,
+  toggleResourceStatus
 } from '../services/resourceService'
+
+import {
+  RESOURCE_LABELS,
+  FACULTY_RESOURCE_TYPES,
+  COMMON_RESOURCE_TYPES
+} from '../utils/resourceOptions'
+
+import ConfirmModal from '../components/ConfirmModal'
 import '../styles/AdminResourceListPage.css'
 
 export default function AdminResourceListPage() {
   const [resources, setResources] = useState([])
-  const [searchType, setSearchType] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterType, setFilterType] = useState('')
+  const [filterValue, setFilterValue] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+
+  const allTypes = [...FACULTY_RESOURCE_TYPES, ...COMMON_RESOURCE_TYPES]
 
   const loadResources = async () => {
     setLoading(true)
@@ -21,8 +39,9 @@ export default function AdminResourceListPage() {
       const response = await getAllResources()
       setResources(response.data)
     } catch (error) {
-      console.error('Error loading resources:', error)
+      console.error(error)
       setError('Failed to load resources')
+      toast.error('Failed to load resources')
     } finally {
       setLoading(false)
     }
@@ -32,40 +51,93 @@ export default function AdminResourceListPage() {
     loadResources()
   }, [])
 
-  const handleDelete = async (id) => {
-    const confirmed = window.confirm('Are you sure you want to delete this resource?')
-    if (!confirmed) return
-
+  const handleToggleStatus = async (resource) => {
     try {
-      await deleteResource(id)
+      await toggleResourceStatus(resource.id)
+
+      toast.success(
+        resource.status === 'ACTIVE'
+          ? 'Marked as Unavailable'
+          : 'Marked as Active'
+      )
+
       loadResources()
     } catch (error) {
-      console.error('Error deleting resource:', error)
-      alert('Failed to delete resource')
+      console.error(error)
+      toast.error('Failed to update status')
+    }
+  }
+
+  const openDeleteModal = (resource) => {
+    setDeleteTarget(resource)
+    setDeleteModalOpen(true)
+  }
+
+  const closeDeleteModal = () => {
+    setDeleteTarget(null)
+    setDeleteModalOpen(false)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return
+
+    try {
+      await deleteResource(deleteTarget.id)
+      toast.success('Resource deleted successfully')
+      closeDeleteModal()
+      loadResources()
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to delete resource')
     }
   }
 
   const handleSearch = async () => {
     try {
-      if (!searchType.trim()) {
+      if (!searchTerm.trim()) {
         loadResources()
         return
       }
 
-      const response = await searchResourcesByType(searchType)
+      const response = await searchResources(searchTerm)
       setResources(response.data)
     } catch (error) {
-      console.error('Error searching resources:', error)
-      setError('Failed to search resources')
+      console.error(error)
+      setError('Search failed')
+      toast.error('Search failed')
+    }
+  }
+
+  const handleFilter = async () => {
+    try {
+      if (!filterType || !filterValue) {
+        loadResources()
+        return
+      }
+
+      const response = await searchResources(filterValue)
+      setResources(response.data)
+    } catch (error) {
+      console.error(error)
+      setError('Filter failed')
+      toast.error('Filter failed')
     }
   }
 
   if (loading) {
-    return <div className="page-container"><p className="info-text">Loading...</p></div>
+    return (
+      <div className="page-container">
+        <p className="info-text">Loading...</p>
+      </div>
+    )
   }
 
   if (error) {
-    return <div className="page-container"><p className="error-text">{error}</p></div>
+    return (
+      <div className="page-container">
+        <p className="error-text">{error}</p>
+      </div>
+    )
   }
 
   return (
@@ -74,7 +146,7 @@ export default function AdminResourceListPage() {
         <div>
           <h1 className="page-title">Admin Resource Management</h1>
           <p className="page-subtitle">
-            Manage all campus resources from the admin panel.
+            Categorize, search, filter and manage all campus resources.
           </p>
         </div>
 
@@ -86,14 +158,50 @@ export default function AdminResourceListPage() {
       <div className="toolbar">
         <input
           type="text"
-          placeholder="Search by type"
-          value={searchType}
-          onChange={(e) => setSearchType(e.target.value)}
+          placeholder="Search by name, code, type or faculty"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
         />
 
         <button onClick={handleSearch} className="search-btn">
           Search
+        </button>
+
+        <select
+          value={filterType}
+          onChange={(e) => {
+            setFilterType(e.target.value)
+            setFilterValue('')
+          }}
+          className="filter-select"
+        >
+          <option value="">Filter By</option>
+          <option value="label">Faculty / Category</option>
+          <option value="type">Resource Type</option>
+        </select>
+
+        <select
+          value={filterValue}
+          onChange={(e) => setFilterValue(e.target.value)}
+          className="filter-select"
+          disabled={!filterType}
+        >
+          <option value="">Select</option>
+
+          {filterType === 'label' &&
+            RESOURCE_LABELS.map((label) => (
+              <option key={label} value={label}>{label}</option>
+            ))}
+
+          {filterType === 'type' &&
+            allTypes.map((type) => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+        </select>
+
+        <button onClick={handleFilter} className="apply-btn">
+          Apply
         </button>
 
         <button onClick={loadResources} className="reset-btn">
@@ -108,8 +216,9 @@ export default function AdminResourceListPage() {
           <table className="resource-table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th>Code</th>
                 <th>Name</th>
+                <th>Faculty</th>
                 <th>Type</th>
                 <th>Capacity</th>
                 <th>Location</th>
@@ -121,36 +230,51 @@ export default function AdminResourceListPage() {
             <tbody>
               {resources.map((resource) => (
                 <tr key={resource.id}>
-                  <td>{resource.id}</td>
-                  <td>{resource.name}</td>
-                  <td>{resource.type}</td>
-                  <td>{resource.capacity}</td>
-                  <td>{resource.location}</td>
+                  <td className="code-cell">{resource.codeName}</td>
+                  <td className="name-cell">{resource.name}</td>
+
                   <td>
-                    <span
-                      className={
-                        resource.status === 'ACTIVE'
-                          ? 'status-badge active'
-                          : 'status-badge inactive'
-                      }
-                    >
-                      {resource.status}
+                    <span className="table-label faculty-label">
+                      {resource.label}
                     </span>
                   </td>
-                  <td>
-                    <Link
-                      to={`/admin/resources/edit/${resource.id}`}
-                      className="table-btn edit-btn"
-                    >
-                      Edit
-                    </Link>
 
+                  <td>
+                    <span className="table-label type-label">
+                      {resource.type}
+                    </span>
+                  </td>
+
+                  <td>{resource.capacity}</td>
+                  <td>{resource.location}</td>
+
+                  <td>
                     <button
-                      onClick={() => handleDelete(resource.id)}
-                      className="table-btn delete-btn"
+                      onClick={() => handleToggleStatus(resource)}
+                      className={`status-toggle-btn ${
+                        resource.status === 'ACTIVE' ? 'active' : 'inactive'
+                      }`}
                     >
-                      Delete
+                      {resource.status === 'ACTIVE' ? 'Active' : 'Unavailable'}
                     </button>
+                  </td>
+
+                  <td>
+                    <div className="action-buttons">
+                      <Link
+                        to={`/admin/resources/edit/${resource.id}`}
+                        className="table-btn edit-btn"
+                      >
+                        Edit
+                      </Link>
+
+                      <button
+                        onClick={() => openDeleteModal(resource)}
+                        className="table-btn delete-btn"
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -158,6 +282,20 @@ export default function AdminResourceListPage() {
           </table>
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={deleteModalOpen}
+        title="Delete Resource?"
+        message={
+          deleteTarget
+            ? `Are you sure you want to delete ${deleteTarget.name} (${deleteTarget.codeName})?`
+            : ''
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={closeDeleteModal}
+      />
     </div>
   )
 }

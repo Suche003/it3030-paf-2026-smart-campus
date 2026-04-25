@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
+import toast from 'react-hot-toast'
 import { getResourceById, updateResource } from '../services/resourceService'
+import {
+  RESOURCE_LABELS,
+  getResourceTypesByLabel
+} from '../utils/resourceOptions'
 import '../styles/ResourceFormPage.css'
 
 export default function EditResourcePage() {
@@ -9,11 +14,18 @@ export default function EditResourcePage() {
 
   const [formData, setFormData] = useState({
     name: '',
+    label: '',
     type: '',
+    codeName: '',
     capacity: '',
     location: '',
     status: 'ACTIVE'
   })
+
+  const [errors, setErrors] = useState({})
+  const [touched, setTouched] = useState({})
+
+  const availableTypes = getResourceTypesByLabel(formData.label)
 
   useEffect(() => {
     loadResource()
@@ -21,78 +33,146 @@ export default function EditResourcePage() {
 
   const loadResource = async () => {
     try {
-      const response = await getResourceById(id)
-      setFormData(response.data)
-    } catch (error) {
-      console.error('Error loading resource:', error)
-      alert('Failed to load resource')
+      const res = await getResourceById(id)
+
+      setFormData({
+        name: res.data.name || '',
+        label: res.data.label || '',
+        type: res.data.type || '',
+        codeName: res.data.codeName || '',
+        capacity: res.data.capacity?.toString() || '',
+        location: res.data.location || '',
+        status: res.data.status || 'ACTIVE'
+      })
+    } catch {
+      toast.error('Failed to load resource')
+    }
+  }
+
+  const validateValue = (name, value) => {
+    switch (name) {
+      case 'name':
+        return value.trim() ? '' : 'Required'
+
+      case 'type':
+        return value ? '' : 'Required'
+
+      case 'capacity':
+        if (!value) return 'Required'
+        if (!/^\d+$/.test(value)) return 'Numbers only'
+        if (parseInt(value) <= 0) return 'Must be > 0'
+        return ''
+
+      case 'location':
+        return value.trim() ? '' : 'Required'
+
+      default:
+        return ''
     }
   }
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === 'capacity' ? Number(value) : value
-    }))
+
+    if (name === 'codeName' || name === 'label') return
+
+    const updatedValue =
+      name === 'capacity'
+        ? value.replace(/[^\d]/g, '')
+        : value
+
+    const updatedData = { ...formData, [name]: updatedValue }
+
+    setFormData(updatedData)
+    setTouched({ ...touched, [name]: true })
+
+    setErrors({
+      ...errors,
+      [name]: validateValue(name, updatedValue)
+    })
   }
+
+  const isFormValid = () =>
+    ['name', 'type', 'capacity', 'location'].every(
+      (f) => formData[f] && !validateValue(f, formData[f])
+    )
 
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    if (!isFormValid()) return
+
     try {
-      await updateResource(id, formData)
-      alert('Resource updated successfully')
+      await updateResource(id, {
+        ...formData,
+        capacity: parseInt(formData.capacity)
+      })
+
+      toast.success('Updated successfully')
       navigate('/admin/resources')
-    } catch (error) {
-      console.error('Error updating resource:', error)
-      alert('Failed to update resource')
+    } catch {
+      toast.error('Update failed')
     }
   }
 
   return (
     <div className="form-page-container">
       <div className="form-page-header">
-        <div>
-          <h1 className="form-page-title">Edit Resource</h1>
-          <p className="form-page-subtitle">Update the selected campus resource.</p>
-        </div>
-
-        <Link to="/admin/resources" className="back-link-btn">
-          Back to Resources
-        </Link>
+        <h1>Edit Resource</h1>
+        <Link to="/admin/resources" className="back-link-btn">Back</Link>
       </div>
 
       <form onSubmit={handleSubmit} className="resource-form-card">
+
         <div className="form-group">
           <label>Name</label>
-          <input type="text" name="name" value={formData.name} onChange={handleChange} required />
+          <input name="name" value={formData.name} onChange={handleChange} />
+        </div>
+
+        <div className="form-group">
+          <label>Faculty</label>
+          <select value={formData.label} disabled>
+            {RESOURCE_LABELS.map(l => <option key={l}>{l}</option>)}
+          </select>
         </div>
 
         <div className="form-group">
           <label>Type</label>
-          <input type="text" name="type" value={formData.type} onChange={handleChange} required />
+          <select name="type" value={formData.type} onChange={handleChange}>
+            {availableTypes.map(t => <option key={t}>{t}</option>)}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Code</label>
+          <input value={formData.codeName} readOnly />
         </div>
 
         <div className="form-group">
           <label>Capacity</label>
-          <input type="number" name="capacity" value={formData.capacity} onChange={handleChange} required />
+          <input
+            type="text"
+            inputMode="numeric"
+            name="capacity"
+            value={formData.capacity}
+            onChange={handleChange}
+          />
         </div>
 
         <div className="form-group">
           <label>Location</label>
-          <input type="text" name="location" value={formData.location} onChange={handleChange} required />
+          <input name="location" value={formData.location} onChange={handleChange} />
         </div>
 
         <div className="form-group">
           <label>Status</label>
           <select name="status" value={formData.status} onChange={handleChange}>
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="OUT_OF_SERVICE">OUT_OF_SERVICE</option>
+            <option value="ACTIVE">AVAILABLE</option>
+            <option value="OUT_OF_SERVICE">UNAVAILABLE</option>
           </select>
         </div>
 
-        <button type="submit" className="submit-btn update-btn">
+        <button disabled={!isFormValid()} className="submit-btn">
           Update Resource
         </button>
       </form>
