@@ -1,0 +1,217 @@
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.new-booking-btn, .view-toggle-btn, .refresh-btn {
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.new-booking-btn {
+  background: linear-gradient(90deg, #ff2f92, #8b3dff);
+  color: white;
+}
+
+.view-toggle-btn {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+/* Stats Cards */
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 20px;
+  text-align: center;
+  transition: 0.25s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.stat-card .stat-value {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.stat-card .stat-label {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.stat-card.pending .stat-value { color: #ffc107; }
+.stat-card.approved .stat-value { color: #4caf50; }
+.stat-card.rejected .stat-value { color: #f44336; }
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-btn-action, .cancel-btn-action {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.25s ease;
+}
+
+.edit-btn-action {
+  background: linear-gradient(135deg, #7c2cff, #a855f7);
+  color: white;
+}
+
+.cancel-btn-action {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+/* Calendar Styles */
+.calendar-container {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 24px;
+  padding: 20px;
+  border: 1px solid var(--border);
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.calendar-header button {
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.weekday {
+  text-align: center;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 8px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.calendar-day {
+  min-height: 100px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 8px;
+  border: 1px solid var(--border);
+}
+
+.calendar-day.empty {
+  background: transparent;
+  border-color: transparent;
+}
+
+.day-number {
+  font-weight: 700;
+  font-size: 1rem;
+}
+
+.day-bookings {
+  margin-top: 8px;
+  font-size: 0.7rem;
+}
+
+.day-booking {
+  background: rgba(76, 175, 80, 0.2);
+  padding: 2px 4px;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Loading & Empty States */
+.loading-spinner, .empty-state {
+  text-align: center;
+  padding: 60px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 32px;
+  border: 1px solid var(--border);
+}
+
+.empty-state h3 {
+  margin: 16px 0 8px;
+}
+
+.empty-state p {
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.create-booking-btn, .retry-btn, .view-all-btn {
+  padding: 12px 24px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #ff2f92, #8b3dff);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.create-booking-btn:hover, .retry-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Reject Reason Tooltip */
+.reject-reason-tooltip {
+  position: absolute;
+  background: #1a1a2e;
+  border: 1px solid #f44336;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  max-width: 200px;
+  z-index: 100;
+  display: none;
+}
+
+.status-badge:hover .reject-reason-tooltip {
+  display: block;
+}
+
+.reject-reason-info {
+  cursor: pointer;
+  margin-left: 4px;
+}

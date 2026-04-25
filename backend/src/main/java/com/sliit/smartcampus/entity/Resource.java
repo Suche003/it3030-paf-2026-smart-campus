@@ -23,6 +23,14 @@ public class Resource {
     @Column(nullable = false)
     private String name;
 
+    @NotBlank(message = "Resource code is required")
+    @Column(nullable = false, unique = true)
+    private String codeName;
+
+    @NotBlank(message = "Resource label is required")
+    @Column(nullable = false)
+    private String label;
+
     @NotBlank(message = "Resource type is required")
     @Column(nullable = false)
     private String type;

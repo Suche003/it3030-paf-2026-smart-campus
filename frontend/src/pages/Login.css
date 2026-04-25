@@ -1,0 +1,121 @@
+/* Reset */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Background */
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: linear-gradient(135deg, #ff2f92, #8b3dff);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 20px;
+
+  box-sizing: border-box;
+}
+
+/* Login Card */
+.login-box {
+  width: min(380px, 100%);
+  padding: 36px;
+  border-radius: 32px;
+
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(18px);
+
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+  text-align: center;
+
+  animation: fadeUp 0.5s ease;
+  box-sizing: border-box;
+}
+
+/* Title */
+.login-box h2 {
+  margin-bottom: 22px;
+  color: #fff;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+/* Inputs */
+.login-box input {
+  width: 100%;
+  padding: 14px 16px;
+  margin: 10px 0;
+
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+
+  outline: none;
+  transition: 0.25s ease;
+}
+
+.login-box input:focus {
+  border-color: rgba(255, 47, 146, 0.7);
+  box-shadow: 0 0 0 5px rgba(255, 47, 146, 0.15);
+}
+
+/* Login Button */
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 16px;
+
+  border: none;
+  border-radius: 16px;
+
+  background: linear-gradient(90deg, #ff2f92, #8b3dff);
+  color: white;
+
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Google Button */
+.google-btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 12px;
+
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+
+  cursor: pointer;
+}
+
+/* REMOVE extra bottom feel */
+.login-box hr {
+  display: none;
+}
+
+/* Animation */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .login-box {
+    padding: 28px;
+  }
+}
