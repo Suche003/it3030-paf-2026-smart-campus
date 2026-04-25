@@ -9,6 +9,7 @@
     radial-gradient(circle at top right, rgba(139, 61, 255, 0.3), transparent 34%),
     linear-gradient(135deg, #090910 0%, #0c0c16 48%, #0a0a14 100%);
   font-family: Arial, sans-serif;
+  overflow: hidden;
 }
 
 .register-box {
@@ -21,7 +22,7 @@
   backdrop-filter: blur(18px);
   box-shadow: 0 24px 70px rgba(0,0,0,0.42);
   text-align: center;
-  animation: fadeUp 0.45s ease both;
+  animation: authSlideUp 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .register-box h2 {
@@ -29,7 +30,6 @@
   color: #fff;
   font-size: 2.1rem;
   font-weight: 900;
-  letter-spacing: -0.04em;
 }
 
 .register-box input {
@@ -42,9 +42,13 @@
   background: rgba(255,255,255,0.06);
   color: #fff;
   outline: none;
-  transition: 0.25s ease;
   box-sizing: border-box;
+  animation: fieldFadeIn 0.55s ease both;
 }
+
+.register-box input:nth-of-type(1) { animation-delay: 0.1s; }
+.register-box input:nth-of-type(2) { animation-delay: 0.17s; }
+.register-box input:nth-of-type(3) { animation-delay: 0.24s; }
 
 .register-box input::placeholder {
   color: rgba(234,234,242,0.55);
@@ -53,12 +57,12 @@
 .register-box input:focus {
   border-color: rgba(255,47,146,0.5);
   box-shadow: 0 0 0 4px rgba(255,47,146,0.12);
-  background: rgba(255,255,255,0.085);
 }
 
 .register-box p {
   color: #ff8ca8 !important;
   font-weight: 800;
+  margin-top: 10px;
 }
 
 .register-box button {
@@ -69,8 +73,6 @@
   border-radius: 16px;
   color: #fff;
   background: linear-gradient(90deg, #ff2f92 0%, #8b3dff 100%);
-  box-shadow: 0 14px 28px rgba(255,47,146,0.22);
-  font-size: 1rem;
   font-weight: 900;
   cursor: pointer;
   transition: 0.25s ease;
@@ -81,11 +83,79 @@
   box-shadow: 0 16px 30px rgba(255,47,146,0.3);
 }
 
-@keyframes fadeUp {
+.google-register-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+
+  width: 100%;
+  height: 56px;
+  margin-top: 12px;
+
+  border-radius: 16px;
+  font-weight: 900;
+  cursor: pointer;
+
+  color: #fff;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: none;
+}
+
+.google-register-btn::before {
+  content: "G";
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #fff;
+  color: #4285f4;
+  font-weight: 900;
+  font-family: Arial, sans-serif;
+}
+
+.google-register-btn:hover {
+  background: rgba(255,255,255,0.1);
+  transform: translateY(-2px);
+}
+
+.auth-switch {
+  margin-top: 18px;
+  color: rgba(234,234,242,0.7) !important;
+}
+
+.auth-switch a {
+  color: #fff;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+@keyframes authSlideUp {
   from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(26px) scale(0.98);
   }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fieldFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
   to {
     opacity: 1;
     transform: translateY(0);

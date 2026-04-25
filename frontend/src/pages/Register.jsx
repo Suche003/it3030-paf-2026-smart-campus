@@ -10,10 +10,8 @@ function Register() {
     password: ""
   });
 
-  // ✅ NEW: error state
   const [error, setError] = useState("");
 
-  // ✅ NEW: validation function
   const validate = () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -47,24 +45,26 @@ function Register() {
   };
 
   const handleSubmit = async () => {
+    if (!validate()) return;
 
-  if (!validate()) return;
+    try {
+      const res = await registerUser(user);
 
-  try {
-    const res = await registerUser(user);
+      alert(res.data.message);
+      window.location.href = "/login";
 
-    alert(res.data.message);   // ✅ backend message show
+    } catch (err) {
+      setError(
+        err.response?.data?.message || "Registration failed"
+      );
+    }
+  };
 
-    window.location.href = "/login";
-
-  } catch (err) {
-
-    // 🔥 IMPORTANT: backend error message display
-    setError(
-      err.response?.data?.message || "Registration failed"
-    );
-  }
-};
+  // ✅ GOOGLE REGISTER (same as login)
+  const googleRegister = () => {
+    window.location.href =
+      "http://localhost:8081/oauth2/authorization/google";
+  };
 
   return (
     <div className="register-wrapper">
@@ -74,26 +74,45 @@ function Register() {
 
         <input
           placeholder="Name"
-          onChange={(e) => setUser({ ...user, name: e.target.value })}
+          onChange={(e) =>
+            setUser({ ...user, name: e.target.value })
+          }
         />
 
         <input
           placeholder="Email"
-          onChange={(e) => setUser({ ...user, email: e.target.value })}
+          onChange={(e) =>
+            setUser({ ...user, email: e.target.value })
+          }
         />
 
         <input
           type="password"
           placeholder="Password"
-          onChange={(e) => setUser({ ...user, password: e.target.value })}
+          onChange={(e) =>
+            setUser({ ...user, password: e.target.value })
+          }
         />
 
-        {/* ✅ NEW: error display */}
-        {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
+        {error && <p>{error}</p>}
 
         <button onClick={handleSubmit}>
           Register
         </button>
+
+        {/* ✅ GOOGLE BUTTON */}
+        <button
+          className="google-register-btn"
+          onClick={googleRegister}
+        >
+          Sign up with Google
+        </button>
+
+        {/* ✅ LOGIN LINK */}
+        <p className="auth-switch">
+          Already have an account?{" "}
+          <a href="/login">Login</a>
+        </p>
 
       </div>
     </div>

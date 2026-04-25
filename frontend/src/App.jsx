@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 
 import AdminResourceListPage from './pages/AdminResourceListPage'
@@ -22,6 +22,13 @@ import Navbar from './components/Navbar'
 import './styles/App.css'
 
 export default function App() {
+  const location = useLocation()
+
+  // hide navbar in login/register
+  const hideNavbar =
+    location.pathname === '/login' ||
+    location.pathname === '/register'
+
   return (
     <>
       <Toaster
@@ -36,26 +43,15 @@ export default function App() {
             borderRadius: '14px',
             padding: '14px 18px',
             fontWeight: '700'
-          },
-          success: {
-            style: {
-              border: '1px solid rgba(139,255,176,0.4)',
-              boxShadow: '0 0 18px rgba(139,255,176,0.18)'
-            }
-          },
-          error: {
-            style: {
-              border: '1px solid rgba(255,140,168,0.4)',
-              boxShadow: '0 0 18px rgba(255,140,168,0.18)'
-            }
           }
         }}
       />
 
-      <Navbar />
+      {!hideNavbar && <Navbar />}
 
-      <main className="admin-module-shell">
+      <main className={hideNavbar ? 'auth-module-shell' : 'admin-module-shell'}>
         <Routes>
+
           <Route path="/" element={<Navigate to="/login" replace />} />
 
           <Route path="/login" element={<Login />} />
@@ -141,6 +137,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
         </Routes>
       </main>
     </>
