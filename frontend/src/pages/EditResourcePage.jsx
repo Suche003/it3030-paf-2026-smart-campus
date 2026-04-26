@@ -50,7 +50,7 @@ export default function EditResourcePage() {
         capacity: res.data.capacity?.toString() || "",
         quantity: res.data.quantity?.toString() || "",
         portable: Boolean(res.data.portable),
-        location: res.data.location || "",
+        location: res.data.location === "N/A" ? "" : res.data.location || "",
         status: res.data.status || "ACTIVE"
       });
     } catch {
@@ -59,15 +59,23 @@ export default function EditResourcePage() {
   };
 
   const handleChange = (e) => {
-    const { name, value, checked, type } = e.target;
+    const { name, value } = e.target;
 
     if (name === "resourceKind" || name === "codeName") return;
+
+    if (name === "label") {
+      setFormData({
+        ...formData,
+        label: value,
+        type: "",
+        portable: value === "Portable"
+      });
+      return;
+    }
 
     const val =
       name === "capacity" || name === "quantity"
         ? value.replace(/[^\d]/g, "")
-        : type === "checkbox"
-        ? checked
         : value;
 
     setFormData({ ...formData, [name]: val });
@@ -77,12 +85,12 @@ export default function EditResourcePage() {
     if (!formData.name.trim()) return false;
     if (!formData.label) return false;
     if (!formData.type) return false;
-    if (!formData.location.trim()) return false;
 
     if (equipment) {
       return formData.quantity && parseInt(formData.quantity) > 0;
     }
 
+    if (!formData.location.trim()) return false;
     return formData.capacity && parseInt(formData.capacity) > 0;
   };
 
@@ -98,7 +106,8 @@ export default function EditResourcePage() {
       ...formData,
       capacity: equipment ? null : parseInt(formData.capacity),
       quantity: equipment ? parseInt(formData.quantity) : null,
-      portable: equipment ? formData.portable : false
+      portable: equipment ? formData.label === "Portable" : false,
+      location: equipment ? "N/A" : formData.location
     };
 
     try {
@@ -129,9 +138,7 @@ export default function EditResourcePage() {
         <div className="form-group">
           <label>Resource Kind</label>
           <input value={getKindLabel(formData.resourceKind)} readOnly />
-          <p className="field-note">
-            Resource kind is locked after creation.
-          </p>
+          <p className="field-note">Resource kind is locked after creation.</p>
         </div>
 
         <div className="form-group">
@@ -170,51 +177,39 @@ export default function EditResourcePage() {
         </div>
 
         {equipment ? (
+          <div className="form-group">
+            <label>Quantity</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              name="quantity"
+              value={formData.quantity}
+              onChange={handleChange}
+            />
+          </div>
+        ) : (
           <>
             <div className="form-group">
-              <label>Quantity</label>
+              <label>Capacity</label>
               <input
                 type="text"
                 inputMode="numeric"
-                name="quantity"
-                value={formData.quantity}
+                name="capacity"
+                value={formData.capacity}
                 onChange={handleChange}
               />
             </div>
 
-            <div className="form-group checkbox-group">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  name="portable"
-                  checked={formData.portable}
-                  onChange={handleChange}
-                />
-                Portable equipment
-              </label>
+            <div className="form-group">
+              <label>Location</label>
+              <input
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+              />
             </div>
           </>
-        ) : (
-          <div className="form-group">
-            <label>Capacity</label>
-            <input
-              type="text"
-              inputMode="numeric"
-              name="capacity"
-              value={formData.capacity}
-              onChange={handleChange}
-            />
-          </div>
         )}
-
-        <div className="form-group">
-          <label>Location</label>
-          <input
-            name="location"
-            value={formData.location}
-            onChange={handleChange}
-          />
-        </div>
 
         <div className="form-group">
           <label>Status</label>

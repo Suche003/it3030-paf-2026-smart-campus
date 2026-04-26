@@ -33,16 +33,8 @@ export default function AdminResourceListPage() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
-  const allCategories = [
-    ...VENUE_CATEGORIES,
-    ...EQUIPMENT_CATEGORIES
-  ]
-
-  const allTypes = [
-    ...FACULTY_VENUE_TYPES,
-    ...COMMON_VENUE_TYPES,
-    ...EQUIPMENT_TYPES
-  ]
+  const allCategories = [...VENUE_CATEGORIES, ...EQUIPMENT_CATEGORIES]
+  const allTypes = [...FACULTY_VENUE_TYPES, ...COMMON_VENUE_TYPES, ...EQUIPMENT_TYPES]
 
   const loadResources = async () => {
     setLoading(true)
@@ -67,13 +59,7 @@ export default function AdminResourceListPage() {
   const handleToggleStatus = async (resource) => {
     try {
       await toggleResourceStatus(resource.id)
-
-      toast.success(
-        resource.status === 'ACTIVE'
-          ? 'Marked as Unavailable'
-          : 'Marked as Active'
-      )
-
+      toast.success(resource.status === 'ACTIVE' ? 'Marked as Unavailable' : 'Marked as Active')
       loadResources()
     } catch (error) {
       console.error(error)
@@ -142,12 +128,6 @@ export default function AdminResourceListPage() {
     setFilterType('')
     setFilterValue('')
     loadResources()
-  }
-
-  const getMeasureLabel = (resource) => {
-    return isEquipment(resource.resourceKind)
-      ? resource.quantity || '-'
-      : resource.capacity || '-'
   }
 
   if (loading) {
@@ -225,12 +205,16 @@ export default function AdminResourceListPage() {
 
           {filterType === 'label' &&
             allCategories.map((category) => (
-              <option key={category} value={category}>{category}</option>
+              <option key={category} value={category}>
+                {category}
+              </option>
             ))}
 
           {filterType === 'type' &&
             allTypes.map((type) => (
-              <option key={type} value={type}>{type}</option>
+              <option key={type} value={type}>
+                {type}
+              </option>
             ))}
         </select>
 
@@ -246,89 +230,57 @@ export default function AdminResourceListPage() {
       {resources.length === 0 ? (
         <p className="info-text">No resources found.</p>
       ) : (
-        <div className="table-wrapper">
-          <table className="resource-table">
-            <thead>
-              <tr>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Kind</th>
-                <th>Category</th>
-                <th>Type</th>
-                <th>Cap / Qty</th>
-                <th>Location</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+        <div className="resource-card-grid">
+          {resources.map((resource) => {
+            const equipment = isEquipment(resource.resourceKind)
 
-            <tbody>
-              {resources.map((resource) => (
-                <tr key={resource.id}>
-                  <td className="code-cell">{resource.codeName}</td>
+            return (
+              <div className="resource-card" key={resource.id}>
+                <div className="resource-card-top">
+                  <h2 className="resource-card-name">{resource.name}</h2>
+                  <span className="resource-code">{resource.codeName}</span>
+                </div>
 
-                  <td className="name-cell">{resource.name}</td>
+                <div className="resource-card-meta">
+                  <span className={`kind-badge ${equipment ? 'equipment' : 'venue'}`}>
+                    {getKindLabel(resource.resourceKind)}
+                  </span>
 
-                  <td>
-                    <span
-                      className={`table-label ${
-                        isEquipment(resource.resourceKind)
-                          ? 'equipment-kind-label'
-                          : 'venue-kind-label'
-                      }`}
-                    >
-                      {getKindLabel(resource.resourceKind)}
-                    </span>
-                  </td>
+                  <button
+                    onClick={() => handleToggleStatus(resource)}
+                    className={`status-toggle-btn ${
+                      resource.status === 'ACTIVE' ? 'active' : 'inactive'
+                    }`}
+                  >
+                    {resource.status === 'ACTIVE' ? 'Active' : 'Unavailable'}
+                  </button>
+                </div>
 
-                  <td>
-                    <span className="table-label faculty-label">
-                      {resource.label}
-                    </span>
-                  </td>
+                <Link
+                  to={`/admin/resources/view/${resource.id}`}
+                  className="view-details-btn"
+                >
+                  View Details
+                </Link>
 
-                  <td>
-                    <span className="table-label type-label">
-                      {resource.type}
-                    </span>
-                  </td>
+                <div className="resource-card-actions">
+                  <Link
+                    to={`/admin/resources/edit/${resource.id}`}
+                    className="card-action-btn update-btn"
+                  >
+                    Update
+                  </Link>
 
-                  <td>{getMeasureLabel(resource)}</td>
-
-                  <td>{resource.location}</td>
-
-                  <td>
-                    <button
-                      onClick={() => handleToggleStatus(resource)}
-                      className={`status-toggle-btn ${
-                        resource.status === 'ACTIVE' ? 'active' : 'inactive'
-                      }`}
-                    >
-                      {resource.status === 'ACTIVE' ? 'Active' : 'Unavailable'}
-                    </button>
-                  </td>
-
-                  <td>
-                    <div className="action-buttons">
-                      <Link
-                        to={`/admin/resources/edit/${resource.id}`}
-                        className="table-btn edit-btn"
-                      >
-                        Edit
-                      </Link>
-
-                      <button
-                        onClick={() => openDeleteModal(resource)}
-                        className="table-btn delete-btn"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  <button
+                    onClick={() => openDeleteModal(resource)}
+                    className="card-action-btn delete-btn"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 

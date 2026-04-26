@@ -32,10 +32,8 @@ export default function AddResourcePage() {
 
   const categories = getCategoriesByKind(formData.resourceKind);
   const types = getTypesByKindAndCategory(formData.resourceKind, formData.label);
-
   const equipment = isEquipment(formData.resourceKind);
 
-  // 🔥 Generate Code
   const generateCode = async (label, kind) => {
     try {
       const res = await getNextResourceCode(label, kind);
@@ -48,14 +46,23 @@ export default function AddResourcePage() {
 
   const handleKindSelect = (kind) => {
     setFormData({
-      ...formData,
-      resourceKind: kind
+      resourceKind: kind,
+      name: "",
+      label: "",
+      type: "",
+      codeName: "",
+      capacity: "",
+      quantity: "",
+      portable: false,
+      location: "",
+      status: "ACTIVE"
     });
+
     setStep(2);
   };
 
   const handleChange = async (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value } = e.target;
 
     if (name === "label") {
       const code = await generateCode(value, formData.resourceKind);
@@ -64,31 +71,34 @@ export default function AddResourcePage() {
         ...formData,
         label: value,
         type: "",
-        codeName: code
+        codeName: code,
+        capacity: "",
+        quantity: "",
+        portable: value === "Portable",
+        location: ""
       });
+
       return;
     }
 
     const val =
       name === "capacity" || name === "quantity"
         ? value.replace(/[^\d]/g, "")
-        : type === "checkbox"
-        ? checked
         : value;
 
     setFormData({ ...formData, [name]: val });
   };
 
   const isValid = () => {
-    if (!formData.name) return false;
+    if (!formData.name.trim()) return false;
     if (!formData.label) return false;
     if (!formData.type) return false;
-    if (!formData.location) return false;
 
     if (equipment) {
       return formData.quantity && parseInt(formData.quantity) > 0;
     }
 
+    if (!formData.location.trim()) return false;
     return formData.capacity && parseInt(formData.capacity) > 0;
   };
 
@@ -103,7 +113,9 @@ export default function AddResourcePage() {
     const payload = {
       ...formData,
       capacity: equipment ? null : parseInt(formData.capacity),
-      quantity: equipment ? parseInt(formData.quantity) : null
+      quantity: equipment ? parseInt(formData.quantity) : null,
+      portable: equipment ? formData.label === "Portable" : false,
+      location: equipment ? "N/A" : formData.location
     };
 
     try {
@@ -117,8 +129,6 @@ export default function AddResourcePage() {
 
   return (
     <div className="form-page-container">
-
-      {/* 🔥 STEP 1 */}
       {step === 1 && (
         <div className="resource-choice-box">
           <h1>What do you want to add?</h1>
@@ -135,13 +145,17 @@ export default function AddResourcePage() {
         </div>
       )}
 
-      {/* 🔥 STEP 2 */}
       {step === 2 && (
         <>
           <div className="form-page-header">
-            <h1>
-              Add {equipment ? "Equipment" : "Venue"}
-            </h1>
+            <div>
+              <h1>Add {equipment ? "Equipment" : "Venue"}</h1>
+              <p className="form-page-subtitle">
+                {equipment
+                  ? "Add portable or fixed equipment to the UniGo catalogue."
+                  : "Add a bookable campus venue to the UniGo catalogue."}
+              </p>
+            </div>
 
             <Link to="/admin/resources" className="back-link-btn">
               Back
@@ -149,67 +163,85 @@ export default function AddResourcePage() {
           </div>
 
           <form onSubmit={handleSubmit} className="resource-form-card">
-
             <div className="form-group">
-              <label>Name</label>
-              <input name="name" onChange={handleChange} />
+              <label>{equipment ? "Equipment Name" : "Venue Name"}</label>
+              <input
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder={equipment ? "Example: Projector" : "Example: Lecture Hall A"}
+              />
             </div>
 
             <div className="form-group">
               <label>Category</label>
-              <select name="label" onChange={handleChange}>
+              <select name="label" value={formData.label} onChange={handleChange}>
                 <option value="">Select</option>
-                {categories.map(c => <option key={c}>{c}</option>)}
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div className="form-group">
               <label>Type</label>
-              <select name="type" onChange={handleChange}>
+              <select name="type" value={formData.type} onChange={handleChange}>
                 <option value="">Select</option>
-                {types.map(t => <option key={t}>{t}</option>)}
+                {types.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
               </select>
             </div>
 
             <div className="form-group">
               <label>Code</label>
-              <input value={formData.codeName} readOnly />
+              <input value={formData.codeName} readOnly placeholder="Auto generated" />
+              <p className="field-note">Resource code is generated automatically.</p>
             </div>
 
-            {/* 🔥 Equipment vs Venue */}
             {equipment ? (
+              <div className="form-group">
+                <label>Quantity</label>
+                <input
+                  name="quantity"
+                  value={formData.quantity}
+                  inputMode="numeric"
+                  onChange={handleChange}
+                  placeholder="Example: 10"
+                />
+              </div>
+            ) : (
               <>
                 <div className="form-group">
-                  <label>Quantity</label>
-                  <input name="quantity" onChange={handleChange} />
+                  <label>Capacity</label>
+                  <input
+                    name="capacity"
+                    value={formData.capacity}
+                    inputMode="numeric"
+                    onChange={handleChange}
+                    placeholder="Example: 100"
+                  />
                 </div>
 
                 <div className="form-group">
-                  <label>
-                    <input
-                      type="checkbox"
-                      name="portable"
-                      onChange={handleChange}
-                    />
-                    Portable
-                  </label>
+                  <label>Location</label>
+                  <input
+                    name="location"
+                    value={formData.location}
+                    onChange={handleChange}
+                    placeholder="Example: Building A - Floor 2"
+                  />
                 </div>
               </>
-            ) : (
-              <div className="form-group">
-                <label>Capacity</label>
-                <input name="capacity" onChange={handleChange} />
-              </div>
             )}
 
             <div className="form-group">
-              <label>Location</label>
-              <input name="location" onChange={handleChange} />
-            </div>
-
-            <div className="form-group">
               <label>Status</label>
-              <select name="status" onChange={handleChange}>
+              <select name="status" value={formData.status} onChange={handleChange}>
                 <option value="ACTIVE">AVAILABLE</option>
                 <option value="OUT_OF_SERVICE">UNAVAILABLE</option>
               </select>
@@ -218,7 +250,6 @@ export default function AddResourcePage() {
             <button className="submit-btn" disabled={!isValid()}>
               Create
             </button>
-
           </form>
         </>
       )}

@@ -16,6 +16,8 @@ import Profile from './pages/Profile'
 import ProtectedRoute from './components/ProtectedRoute'
 import Navbar from './components/Navbar'
 
+import ViewResourcePage from './pages/ViewResourcePage'
+
 import './styles/App.css'
 
 export default function App() {
@@ -93,6 +95,11 @@ export default function App() {
           <Route
             path="/technician"
             element={<ProtectedRoute role="TECHNICIAN"><Technician /></ProtectedRoute>}
+          />
+
+          <Route
+            path="/admin/resources/view/:id"
+            element={<ProtectedRoute role="ADMIN"><ViewResourcePage /></ProtectedRoute>}
           />
         </Routes>
       </main>
