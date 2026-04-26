@@ -41,7 +41,7 @@
   color: #888;
 }
 
-/* REMOVE parent padding for auth pages */
+/* Auth pages: no navbar / no wrapper padding */
 .auth-module-shell {
   min-height: 100vh;
   width: 100%;
@@ -49,11 +49,22 @@
   margin: 0;
 }
 
-/* EXISTING ADMIN LAYOUT */
+/* Main app pages */
 .admin-module-shell {
   min-height: 100vh;
   width: 100%;
-  padding: 48px 24px 80px;
-  display: flex;
-  justify-content: center;
+  padding: 42px 24px 80px;
+}
+
+.plain-module-shell {
+  width: 100%;
+  min-height: 100vh;
+  padding: 0;
+  margin: 0;
+}
+
+.admin-module-shell {
+  min-height: 100vh;
+  width: 100%;
+  padding: 42px 24px 80px;
 }
