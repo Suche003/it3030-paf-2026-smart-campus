@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -48,22 +49,49 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody AuthRequest request) {
+public ResponseEntity<?> login(@Valid @RequestBody AuthRequest request) {
 
-        User user = repo.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid email or password"));
+    User user = repo.findByEmail(request.getEmail())
+            .orElseThrow(() -> new RuntimeException("Invalid email or password"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid email or password");
-        }
-
-        String token = jwtService.generateToken(user.getEmail());
-
-        AuthResponse authResponse = new AuthResponse(
-                token,
-                user.getRole().name()
-        );
-
-        return ResponseEntity.ok(authResponse);
+    if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+        throw new RuntimeException("Invalid email or password");
     }
+
+    // FIXED ONLY LINE
+    String token = jwtService.generateToken(
+            user.getEmail(),
+            user.getRole().name()
+    );
+
+    AuthResponse response = new AuthResponse(
+            token,
+            user.getRole().name()
+    );
+
+    return ResponseEntity.ok(response);
 }
+
+@PostMapping("/admin/create-user")
+@PreAuthorize("hasRole('ADMIN')")
+public ResponseEntity<?> createUserByAdmin(@RequestBody User user) {
+
+    Map<String, String> response = new HashMap<>();
+
+    if (repo.findByEmail(user.getEmail()).isPresent()) {
+        response.put("message", "Email already exists");
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    // Admin can set role manually
+    user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+    repo.save(user);
+
+    response.put("message", "User created as " + user.getRole().name());
+
+    return ResponseEntity.status(HttpStatus.CREATED).body(response);
+}
+
+}
+

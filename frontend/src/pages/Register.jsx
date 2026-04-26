@@ -60,7 +60,7 @@ function Register() {
     }
   };
 
-  // ✅ GOOGLE REGISTER (same as login)
+  // GOOGLE REGISTER (same as login)
   const googleRegister = () => {
     window.location.href =
       "http://localhost:8081/oauth2/authorization/google";
@@ -100,7 +100,7 @@ function Register() {
           Register
         </button>
 
-        {/* ✅ GOOGLE BUTTON */}
+        {/*  GOOGLE BUTTON */}
         <button
           className="google-register-btn"
           onClick={googleRegister}
@@ -108,7 +108,7 @@ function Register() {
           Sign up with Google
         </button>
 
-        {/* ✅ LOGIN LINK */}
+        {/*  LOGIN LINK */}
         <p className="auth-switch">
           Already have an account?{" "}
           <a href="/login">Login</a>

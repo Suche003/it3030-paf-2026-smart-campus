@@ -5,10 +5,8 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
 
-
-import java.util.Date;
-
 import javax.crypto.SecretKey;
+import java.util.Date;
 
 @Service
 public class JwtService {
@@ -19,9 +17,11 @@ public class JwtService {
         return Keys.hmacShaKeyFor(SECRET.getBytes());
     }
 
-    public String generateToken(String email) {
+    
+    public String generateToken(String email, String role) {
         return Jwts.builder()
-                .subject(email) // ✅ new method
+                .subject(email)
+                .claim("role", role)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 86400000))
                 .signWith(getSignKey())
@@ -32,11 +32,16 @@ public class JwtService {
         return extractClaims(token).getSubject();
     }
 
+    public String extractRole(String token) {
+        Object role = extractClaims(token).get("role");
+        return role != null ? role.toString() : "USER";
+    }
+
     private Claims extractClaims(String token) {
         return Jwts.parser()
-                .verifyWith(getSignKey())   // ✅ replaces setSigningKey
+                .verifyWith(getSignKey())
                 .build()
-                .parseSignedClaims(token)  // ✅ replaces parseClaimsJws
+                .parseSignedClaims(token)
                 .getPayload();
     }
 }

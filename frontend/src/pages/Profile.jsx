@@ -16,9 +16,9 @@ function Profile() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  // =========================
+
   // LOAD PROFILE
-  // =========================
+  
   useEffect(() => {
     if (email) {
       loadProfile();
@@ -52,9 +52,8 @@ function Profile() {
     }
   };
 
-  // =========================
   // HANDLE INPUT CHANGE
-  // =========================
+ 
   const handleChange = (e) => {
     setUser({
       ...user,
@@ -62,9 +61,8 @@ function Profile() {
     });
   };
 
-  // =========================
   // UPDATE PROFILE
-  // =========================
+  
   const updateProfile = async () => {
     try {
 
@@ -86,9 +84,9 @@ function Profile() {
     }
   };
 
-  // =========================
+  
   // DELETE PROFILE
-  // =========================
+  
   const deleteProfile = async () => {
 
     const confirmDelete = window.confirm(
@@ -117,9 +115,9 @@ function Profile() {
     }
   };
 
-  // =========================
+  
   // UI
-  // =========================
+  
   if (loading) {
     return <h3 style={{ padding: "20px" }}>Loading profile...</h3>;
   }

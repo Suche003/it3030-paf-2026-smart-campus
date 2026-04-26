@@ -2,47 +2,64 @@ package com.sliit.smartcampus.config;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.web.filter.OncePerRequestFilter;
+
 import java.io.IOException;
+import java.util.List;
 
 @Component
-public class JwtAuthFilter implements Filter {
+@RequiredArgsConstructor
+public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
 
-    public JwtAuthFilter(JwtService jwtService) {
-        this.jwtService = jwtService;
-    }
-
     @Override
-public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-        throws IOException, ServletException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
 
-    HttpServletRequest req = (HttpServletRequest) request;
+        String authHeader = request.getHeader("Authorization");
 
-    String header = req.getHeader("Authorization");
-
-    try {
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7);
-
-            // 🔥 safe extraction
-            String email = jwtService.extractEmail(token);
-
-            if (email != null) {
-                UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(email, null, null);
-
-                SecurityContextHolder.getContext().setAuthentication(auth);
-            }
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
         }
-    } catch (Exception e) {
-        // 🔥 IMPORTANT: prevent crash
-        SecurityContextHolder.clearContext();
-    }
 
-    chain.doFilter(request, response);
-}
+        String token = authHeader.substring(7);
+
+        String email = jwtService.extractEmail(token);
+        String role = jwtService.extractRole(token);
+
+        if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+            if (role == null || role.isBlank()) {
+                role = "USER";
+            }
+
+            role = role.replace("ROLE_", "");
+            String authority = "ROLE_" + role;
+
+            UsernamePasswordAuthenticationToken authToken =
+                    new UsernamePasswordAuthenticationToken(
+                            email,
+                            null,
+                            List.of(new SimpleGrantedAuthority(authority))
+                    );
+
+            authToken.setDetails(
+                    new WebAuthenticationDetailsSource().buildDetails(request)
+            );
+
+            SecurityContextHolder.getContext().setAuthentication(authToken);
+        }
+
+        filterChain.doFilter(request, response);
+    }
 }

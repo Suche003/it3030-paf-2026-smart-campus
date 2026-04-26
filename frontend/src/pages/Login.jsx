@@ -57,8 +57,20 @@ function Login() {
     }
   };
 
+  
+  // GOOGLE LOGIN
+
   const googleLogin = () => {
-    window.location.href = "http://localhost:8081/oauth2/authorization/google";
+    window.location.href =
+      "http://localhost:8081/oauth2/authorization/google";
+  };
+
+  
+  // FACEBOOK LOGIN (FIXED)
+
+  const facebookLogin = () => {
+    window.location.href =
+      "http://localhost:8081/oauth2/authorization/facebook";
   };
 
   return (
@@ -103,9 +115,16 @@ function Login() {
           Login
         </button>
 
+        {/* GOOGLE */}
         <button className="google-btn" onClick={googleLogin}>
           <span className="google-icon">G</span>
           Login with Google
+        </button>
+
+        {/* FACEBOOK (FIXED) */}
+        <button className="facebook-btn" onClick={facebookLogin}>
+          <div className="facebook-icon">f</div>
+          Continue with Facebook
         </button>
 
         <p className="auth-switch">

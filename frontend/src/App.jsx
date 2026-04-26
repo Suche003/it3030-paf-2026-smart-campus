@@ -13,10 +13,10 @@ import Technician from './pages/Technician'
 import Notifications from './pages/Notifications'
 import Profile from './pages/Profile'
 
+import ViewResourcePage from './pages/ViewResourcePage'
+
 import ProtectedRoute from './components/ProtectedRoute'
 import Navbar from './components/Navbar'
-
-import ViewResourcePage from './pages/ViewResourcePage'
 
 import './styles/App.css'
 
@@ -47,60 +47,36 @@ export default function App() {
 
       <main className={noShell ? 'plain-module-shell' : 'admin-module-shell'}>
         <Routes>
+
+          {/* Default */}
           <Route path="/" element={<Navigate to="/login" replace />} />
 
+          {/* Auth */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          <Route
-            path="/profile"
-            element={<ProtectedRoute><Profile /></ProtectedRoute>}
-          />
+          {/* Common */}
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
 
-          <Route
-            path="/notifications"
-            element={<ProtectedRoute><Notifications /></ProtectedRoute>}
-          />
+          {/* ADMIN */}
+          <Route path="/admin" element={<ProtectedRoute role="ADMIN"><Admin /></ProtectedRoute>} />
+          <Route path="/admin/resources" element={<ProtectedRoute role="ADMIN"><AdminResourceListPage /></ProtectedRoute>} />
+          <Route path="/admin/resources/add" element={<ProtectedRoute role="ADMIN"><AddResourcePage /></ProtectedRoute>} />
+          <Route path="/admin/resources/edit/:id" element={<ProtectedRoute role="ADMIN"><EditResourcePage /></ProtectedRoute>} />
+          <Route path="/admin/resources/view/:id" element={<ProtectedRoute role="ADMIN"><ViewResourcePage /></ProtectedRoute>} />
 
-          <Route
-            path="/admin"
-            element={<ProtectedRoute role="ADMIN"><Admin /></ProtectedRoute>}
-          />
+          
 
-          <Route
-            path="/admin/resources"
-            element={<ProtectedRoute role="ADMIN"><AdminResourceListPage /></ProtectedRoute>}
-          />
+          {/* STUDENT */}
+          <Route path="/student" element={<ProtectedRoute role="STUDENT"><Student /></ProtectedRoute>} />
 
-          <Route
-            path="/admin/resources/add"
-            element={<ProtectedRoute role="ADMIN"><AddResourcePage /></ProtectedRoute>}
-          />
+          {/* LECTURER */}
+          <Route path="/lecturer" element={<ProtectedRoute role="LECTURER"><Lecturer /></ProtectedRoute>} />
 
-          <Route
-            path="/admin/resources/edit/:id"
-            element={<ProtectedRoute role="ADMIN"><EditResourcePage /></ProtectedRoute>}
-          />
+          {/* TECHNICIAN */}
+          <Route path="/technician" element={<ProtectedRoute role="TECHNICIAN"><Technician /></ProtectedRoute>} />
 
-          <Route
-            path="/student"
-            element={<ProtectedRoute role="STUDENT"><Student /></ProtectedRoute>}
-          />
-
-          <Route
-            path="/lecturer"
-            element={<ProtectedRoute role="LECTURER"><Lecturer /></ProtectedRoute>}
-          />
-
-          <Route
-            path="/technician"
-            element={<ProtectedRoute role="TECHNICIAN"><Technician /></ProtectedRoute>}
-          />
-
-          <Route
-            path="/admin/resources/view/:id"
-            element={<ProtectedRoute role="ADMIN"><ViewResourcePage /></ProtectedRoute>}
-          />
         </Routes>
       </main>
     </>

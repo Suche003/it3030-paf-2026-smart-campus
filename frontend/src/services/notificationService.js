@@ -1,17 +1,14 @@
 import axios from "axios";
 
-export const getNotifications = (email) => {
+export const getNotifications = () => {
 
   const token = localStorage.getItem("token");
 
-  return axios.get(
-    `http://localhost:8081/api/notifications/${email}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}` // 🔥 ADD THIS
-      }
+  return axios.get("http://localhost:8081/api/notifications", {
+    headers: {
+      Authorization: `Bearer ${token}`
     }
-  );
+  });
 };
 
 export const markAsRead = (id) => {
@@ -23,7 +20,7 @@ export const markAsRead = (id) => {
     {},
     {
       headers: {
-        Authorization: `Bearer ${token}` // 🔥 ADD THIS
+        Authorization: `Bearer ${token}`
       }
     }
   );
