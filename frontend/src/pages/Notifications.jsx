@@ -1,36 +1,54 @@
 import { useEffect, useState } from "react";
-import { getNotifications, markAsRead, deleteNotification } from "../services/notificationService";
+import {
+  getNotifications,
+  markAsRead,
+  deleteNotification
+} from "../services/notificationService";
 import "./Notification.css";
 
 function Notifications() {
 
   const [notifications, setNotifications] = useState([]);
 
-  const email = localStorage.getItem("email");
 
   useEffect(() => {
-    if (email) {
-      loadNotifications();
-    }
-  }, [email]);
+    loadNotifications();
+  }, []);
+
+ 
+  // LOAD NOTIFICATIONS
 
   const loadNotifications = async () => {
     try {
-      const res = await getNotifications(email);
+      const res = await getNotifications();
       setNotifications(res.data);
     } catch (err) {
       console.log("Error loading notifications", err);
     }
   };
 
+
+  // MARK AS READ
+  
   const handleRead = async (id) => {
-    await markAsRead(id);
-    loadNotifications();
+    try {
+      await markAsRead(id);
+      loadNotifications();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
+ 
+  // DELETE
+  
   const handleDelete = async (id) => {
-    await deleteNotification(id);
-    loadNotifications();
+    try {
+      await deleteNotification(id);
+      loadNotifications();
+    } catch (err) {
+      console.log(err);
+    }
   };
 
   return (
@@ -50,7 +68,9 @@ function Notifications() {
 
           <p className="notification-message">{n.message}</p>
 
-          <small className="notification-date">{n.createdAt}</small>
+          <small className="notification-date">
+            {n.createdAt}
+          </small>
 
           {/* MARK AS READ */}
           {!n.readStatus && (
@@ -62,7 +82,7 @@ function Notifications() {
             </button>
           )}
 
-          {/* DELETE BUTTON (ONLY AFTER READ) */}
+          {/* DELETE */}
           {n.readStatus && (
             <button
               className="delete-btn"

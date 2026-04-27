@@ -14,18 +14,18 @@ public class ProfileController {
     private final UserRepository repo;
     private final PasswordEncoder encoder;
 
-    // =========================
+
     // GET PROFILE
-    // =========================
+    
     @GetMapping("/{email}")
     public User getProfile(@PathVariable String email) {
         return repo.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    // =========================
+    
     // UPDATE PROFILE
-    // =========================
+   
     @PutMapping("/{email}")
     public User updateProfile(@PathVariable String email,
                               @RequestBody User updatedUser) {
@@ -44,9 +44,9 @@ public class ProfileController {
         return repo.save(user);
     }
 
-    // =========================
+    
     // DELETE PROFILE
-    // =========================
+   
     @DeleteMapping("/{email}")
     public String deleteProfile(@PathVariable String email) {
 

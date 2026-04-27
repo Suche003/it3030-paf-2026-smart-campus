@@ -1,168 +1,215 @@
-import { useEffect, useState } from 'react'
-import { useNavigate, useParams, Link } from 'react-router-dom'
-import toast from 'react-hot-toast'
-import { getResourceById, updateResource } from '../services/resourceService'
+import { useEffect, useState } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { getResourceById, updateResource } from "../services/resourceService";
+
 import {
-  RESOURCE_LABELS,
-  getResourceTypesByLabel
-} from '../utils/resourceOptions'
-import '../styles/ResourceFormPage.css'
+  getCategoriesByKind,
+  getTypesByKindAndCategory,
+  isEquipment,
+  getKindLabel
+} from "../utils/resourceOptions";
+
+import "../styles/ResourceFormPage.css";
 
 export default function EditResourcePage() {
-  const { id } = useParams()
-  const navigate = useNavigate()
+  const { id } = useParams();
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    name: '',
-    label: '',
-    type: '',
-    codeName: '',
-    capacity: '',
-    location: '',
-    status: 'ACTIVE'
-  })
+    resourceKind: "",
+    name: "",
+    label: "",
+    type: "",
+    codeName: "",
+    capacity: "",
+    quantity: "",
+    portable: false,
+    location: "",
+    status: "ACTIVE"
+  });
 
-  const [errors, setErrors] = useState({})
-  const [touched, setTouched] = useState({})
-
-  const availableTypes = getResourceTypesByLabel(formData.label)
+  const equipment = isEquipment(formData.resourceKind);
+  const categories = getCategoriesByKind(formData.resourceKind);
+  const types = getTypesByKindAndCategory(formData.resourceKind, formData.label);
 
   useEffect(() => {
-    loadResource()
-  }, [])
+    loadResource();
+  }, []);
 
   const loadResource = async () => {
     try {
-      const res = await getResourceById(id)
+      const res = await getResourceById(id);
 
       setFormData({
-        name: res.data.name || '',
-        label: res.data.label || '',
-        type: res.data.type || '',
-        codeName: res.data.codeName || '',
-        capacity: res.data.capacity?.toString() || '',
-        location: res.data.location || '',
-        status: res.data.status || 'ACTIVE'
-      })
+        resourceKind: res.data.resourceKind || "VENUE",
+        name: res.data.name || "",
+        label: res.data.label || "",
+        type: res.data.type || "",
+        codeName: res.data.codeName || "",
+        capacity: res.data.capacity?.toString() || "",
+        quantity: res.data.quantity?.toString() || "",
+        portable: Boolean(res.data.portable),
+        location: res.data.location === "N/A" ? "" : res.data.location || "",
+        status: res.data.status || "ACTIVE"
+      });
     } catch {
-      toast.error('Failed to load resource')
+      toast.error("Failed to load resource");
     }
-  }
-
-  const validateValue = (name, value) => {
-    switch (name) {
-      case 'name':
-        return value.trim() ? '' : 'Required'
-
-      case 'type':
-        return value ? '' : 'Required'
-
-      case 'capacity':
-        if (!value) return 'Required'
-        if (!/^\d+$/.test(value)) return 'Numbers only'
-        if (parseInt(value) <= 0) return 'Must be > 0'
-        return ''
-
-      case 'location':
-        return value.trim() ? '' : 'Required'
-
-      default:
-        return ''
-    }
-  }
+  };
 
   const handleChange = (e) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
 
-    if (name === 'codeName' || name === 'label') return
+    if (name === "resourceKind" || name === "codeName") return;
 
-    const updatedValue =
-      name === 'capacity'
-        ? value.replace(/[^\d]/g, '')
-        : value
+    if (name === "label") {
+      setFormData({
+        ...formData,
+        label: value,
+        type: "",
+        portable: value === "Portable"
+      });
+      return;
+    }
 
-    const updatedData = { ...formData, [name]: updatedValue }
+    const val =
+      name === "capacity" || name === "quantity"
+        ? value.replace(/[^\d]/g, "")
+        : value;
 
-    setFormData(updatedData)
-    setTouched({ ...touched, [name]: true })
+    setFormData({ ...formData, [name]: val });
+  };
 
-    setErrors({
-      ...errors,
-      [name]: validateValue(name, updatedValue)
-    })
-  }
+  const isValid = () => {
+    if (!formData.name.trim()) return false;
+    if (!formData.label) return false;
+    if (!formData.type) return false;
 
-  const isFormValid = () =>
-    ['name', 'type', 'capacity', 'location'].every(
-      (f) => formData[f] && !validateValue(f, formData[f])
-    )
+    if (equipment) {
+      return formData.quantity && parseInt(formData.quantity) > 0;
+    }
+
+    if (!formData.location.trim()) return false;
+    return formData.capacity && parseInt(formData.capacity) > 0;
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!isFormValid()) return
+    if (!isValid()) {
+      toast.error("Fill all required fields");
+      return;
+    }
+
+    const payload = {
+      ...formData,
+      capacity: equipment ? null : parseInt(formData.capacity),
+      quantity: equipment ? parseInt(formData.quantity) : null,
+      portable: equipment ? formData.label === "Portable" : false,
+      location: equipment ? "N/A" : formData.location
+    };
 
     try {
-      await updateResource(id, {
-        ...formData,
-        capacity: parseInt(formData.capacity)
-      })
-
-      toast.success('Updated successfully')
-      navigate('/admin/resources')
-    } catch {
-      toast.error('Update failed')
+      await updateResource(id, payload);
+      toast.success("Updated successfully");
+      navigate("/admin/resources");
+    } catch (err) {
+      toast.error(err.response?.data || "Update failed");
     }
-  }
+  };
 
   return (
     <div className="form-page-container">
       <div className="form-page-header">
-        <h1>Edit Resource</h1>
-        <Link to="/admin/resources" className="back-link-btn">Back</Link>
+        <div>
+          <h1>Edit {getKindLabel(formData.resourceKind)}</h1>
+          <p className="form-page-subtitle">
+            Update resource details. Resource kind and code are locked.
+          </p>
+        </div>
+
+        <Link to="/admin/resources" className="back-link-btn">
+          Back
+        </Link>
       </div>
 
       <form onSubmit={handleSubmit} className="resource-form-card">
+        <div className="form-group">
+          <label>Resource Kind</label>
+          <input value={getKindLabel(formData.resourceKind)} readOnly />
+          <p className="field-note">Resource kind is locked after creation.</p>
+        </div>
 
         <div className="form-group">
-          <label>Name</label>
+          <label>{equipment ? "Equipment Name" : "Venue Name"}</label>
           <input name="name" value={formData.name} onChange={handleChange} />
         </div>
 
         <div className="form-group">
-          <label>Faculty</label>
-          <select value={formData.label} disabled>
-            {RESOURCE_LABELS.map(l => <option key={l}>{l}</option>)}
+          <label>Category</label>
+          <select name="label" value={formData.label} onChange={handleChange}>
+            <option value="">Select</option>
+            {categories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
           </select>
         </div>
 
         <div className="form-group">
           <label>Type</label>
           <select name="type" value={formData.type} onChange={handleChange}>
-            {availableTypes.map(t => <option key={t}>{t}</option>)}
+            <option value="">Select</option>
+            {types.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
           </select>
         </div>
 
         <div className="form-group">
           <label>Code</label>
           <input value={formData.codeName} readOnly />
+          <p className="field-note">Resource code is permanent.</p>
         </div>
 
-        <div className="form-group">
-          <label>Capacity</label>
-          <input
-            type="text"
-            inputMode="numeric"
-            name="capacity"
-            value={formData.capacity}
-            onChange={handleChange}
-          />
-        </div>
+        {equipment ? (
+          <div className="form-group">
+            <label>Quantity</label>
+            <input
+              type="text"
+              inputMode="numeric"
+              name="quantity"
+              value={formData.quantity}
+              onChange={handleChange}
+            />
+          </div>
+        ) : (
+          <>
+            <div className="form-group">
+              <label>Capacity</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                name="capacity"
+                value={formData.capacity}
+                onChange={handleChange}
+              />
+            </div>
 
-        <div className="form-group">
-          <label>Location</label>
-          <input name="location" value={formData.location} onChange={handleChange} />
-        </div>
+            <div className="form-group">
+              <label>Location</label>
+              <input
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+              />
+            </div>
+          </>
+        )}
 
         <div className="form-group">
           <label>Status</label>
@@ -172,10 +219,10 @@ export default function EditResourcePage() {
           </select>
         </div>
 
-        <button disabled={!isFormValid()} className="submit-btn">
-          Update Resource
+        <button disabled={!isValid()} className="submit-btn">
+          Update
         </button>
       </form>
     </div>
-  )
+  );
 }

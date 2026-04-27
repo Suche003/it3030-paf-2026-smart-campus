@@ -1,14 +1,26 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { loginUser } from "../services/authService";
 import "./Login.css";
 
 function Login() {
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // 🔵 GOOGLE LOGIN REDIRECT HANDLER
+  const redirectByRole = (role) => {
+    const routes = {
+      ADMIN: "/admin",
+      STUDENT: "/student",
+      LECTURER: "/lecturer",
+      TECHNICIAN: "/technician",
+    };
+
+    window.location.replace(routes[role] || "/login");
+  };
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const token = params.get("token");
@@ -19,80 +31,66 @@ function Login() {
       localStorage.setItem("token", token);
       localStorage.setItem("role", role);
 
-      // ✅ SAFE EMAIL HANDLING
       if (googleEmail) {
         localStorage.setItem("email", googleEmail);
       } else {
-        localStorage.removeItem("email"); // 🔥 avoid old email bug
+        localStorage.removeItem("email");
       }
 
-      window.location.replace("/" + role.toLowerCase());
+      redirectByRole(role);
     }
   }, []);
 
-  // 🔐 VALIDATION
-  const validate = () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!email.trim()) {
-      setError("Email is required");
-      return false;
-    }
-
-    if (!emailRegex.test(email)) {
-      setError("Invalid email format");
-      return false;
-    }
-
-    if (!password) {
-      setError("Password is required");
-      return false;
-    }
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
-      return false;
-    }
-
-    setError("");
-    return true;
-  };
-
-  // 🔐 NORMAL LOGIN
   const handleLogin = async () => {
-
-    if (!validate()) return;
+    setError("");
 
     try {
       const res = await loginUser({ email, password });
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
-
-      // ✅ IMPORTANT: store correct email
       localStorage.setItem("email", email);
 
-      window.location.replace("/" + res.data.role.toLowerCase());
-
-    } catch (err) {
+      redirectByRole(res.data.role);
+    } catch {
       setError("Invalid email or password");
     }
   };
 
-  // 🔵 GOOGLE LOGIN
+  
+  // GOOGLE LOGIN
+
   const googleLogin = () => {
     window.location.href =
       "http://localhost:8081/oauth2/authorization/google";
   };
 
+  
+  // FACEBOOK LOGIN (FIXED)
+
+  const facebookLogin = () => {
+    window.location.href =
+      "http://localhost:8081/oauth2/authorization/facebook";
+  };
+
   return (
     <div className="login-wrapper">
-      <div className="login-box">
+      <button className="auth-back-btn" onClick={() => navigate("/")}>
+        ↩ Go Back
+      </button>
 
+      <div className="login-header">
+        <h1>
+          Welcome back to <span>UniGo</span>
+        </h1>
+      </div>
+
+      <div className="login-box">
         <h2>Login</h2>
 
+        <label>Email</label>
         <input
-          placeholder="Email"
+          placeholder="Enter email"
           value={email}
           onChange={(e) => {
             setEmail(e.target.value);
@@ -100,9 +98,10 @@ function Login() {
           }}
         />
 
+        <label>Password</label>
         <input
           type="password"
-          placeholder="Password"
+          placeholder="Enter password"
           value={password}
           onChange={(e) => {
             setPassword(e.target.value);
@@ -110,22 +109,27 @@ function Login() {
           }}
         />
 
-        {error && (
-          <p style={{ color: "red", marginTop: "10px" }}>
-            {error}
-          </p>
-        )}
+        {error && <p className="auth-error">{error}</p>}
 
         <button className="login-btn" onClick={handleLogin}>
           Login
         </button>
 
-        <hr />
-
+        {/* GOOGLE */}
         <button className="google-btn" onClick={googleLogin}>
+          <span className="google-icon">G</span>
           Login with Google
         </button>
 
+        {/* FACEBOOK (FIXED) */}
+        <button className="facebook-btn" onClick={facebookLogin}>
+          <div className="facebook-icon">f</div>
+          Continue with Facebook
+        </button>
+
+        <p className="auth-switch">
+          New to UniGo? <a href="/register">Create an account</a>
+        </p>
       </div>
     </div>
   );

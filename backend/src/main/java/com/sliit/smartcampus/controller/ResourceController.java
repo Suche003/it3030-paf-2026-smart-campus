@@ -1,7 +1,6 @@
 package com.sliit.smartcampus.controller;
 
 import com.sliit.smartcampus.entity.Resource;
-import com.sliit.smartcampus.enumtypes.ResourceStatus;
 import com.sliit.smartcampus.service.ResourceService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +24,7 @@ public class ResourceController {
         try {
             return ResponseEntity.ok(service.save(resource));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Resource code already exists");
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
@@ -35,8 +34,11 @@ public class ResourceController {
     }
 
     @GetMapping("/next-code")
-    public String getNextCode(@RequestParam String label) {
-        return service.generateNextCode(label);
+    public String getNextCode(
+            @RequestParam String label,
+            @RequestParam String resourceKind
+    ) {
+        return service.generateNextCode(label, resourceKind);
     }
 
     @GetMapping("/search")
@@ -54,9 +56,20 @@ public class ResourceController {
         return service.findByLabel(label);
     }
 
+    @GetMapping("/filter/kind")
+    public List<Resource> filterByKind(@RequestParam String resourceKind) {
+        return service.findByResourceKind(resourceKind);
+    }
+
     @GetMapping("/{id}")
-    public Resource getById(@PathVariable Long id) {
-        return service.getById(id);
+    public ResponseEntity<?> getById(@PathVariable Long id) {
+        Resource resource = service.getById(id);
+
+        if (resource == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(resource);
     }
 
     @PutMapping("/{id}")
@@ -70,7 +83,7 @@ public class ResourceController {
 
             return ResponseEntity.ok(updatedResource);
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Resource code already exists");
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
@@ -83,19 +96,13 @@ public class ResourceController {
     @PutMapping("/{id}/toggle-status")
     public ResponseEntity<?> toggleStatus(@PathVariable Long id) {
         try {
-            Resource resource = service.getById(id);
+            Resource resource = service.toggleStatus(id);
 
             if (resource == null) {
                 return ResponseEntity.notFound().build();
             }
 
-            if (resource.getStatus() == ResourceStatus.ACTIVE) {
-                resource.setStatus(ResourceStatus.OUT_OF_SERVICE);
-            } else {
-                resource.setStatus(ResourceStatus.ACTIVE);
-            }
-
-            return ResponseEntity.ok(service.save(resource));
+            return ResponseEntity.ok(resource);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to toggle status");
         }

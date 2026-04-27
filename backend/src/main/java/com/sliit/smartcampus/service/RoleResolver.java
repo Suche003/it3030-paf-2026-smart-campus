@@ -12,14 +12,14 @@ public class RoleResolver {
             return Role.ADMIN;
         }
 
-        if (email.endsWith("@my.sliit.lk")) {
-            return Role.STUDENT;
+        if (email.endsWith("@technician.lk")) {
+            return Role.TECHNICIAN;
         }
 
         if (email.endsWith("@lecturer.sliit.lk")) {
             return Role.LECTURER;
         }
 
-        return Role.TECHNICIAN;
+        return Role.STUDENT;
     }
 }

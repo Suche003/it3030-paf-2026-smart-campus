@@ -1,28 +1,34 @@
-import axios from 'axios'
+import API from "./api";
 
-const API_URL = 'http://localhost:8081/api/resources'
+const RESOURCE_URL = "/resources";
 
-export const getAllResources = () => axios.get(API_URL)
+export const getAllResources = () => API.get(RESOURCE_URL);
 
-export const getResourceById = (id) => axios.get(`${API_URL}/${id}`)
+export const getResourceById = (id) => API.get(`${RESOURCE_URL}/${id}`);
 
-export const createResource = (resource) => axios.post(API_URL, resource)
+export const createResource = (resource) => API.post(RESOURCE_URL, resource);
 
-export const updateResource = (id, resource) => axios.put(`${API_URL}/${id}`, resource)
+export const updateResource = (id, resource) =>
+  API.put(`${RESOURCE_URL}/${id}`, resource);
 
-export const deleteResource = (id) => axios.delete(`${API_URL}/${id}`)
+export const deleteResource = (id) => API.delete(`${RESOURCE_URL}/${id}`);
 
 export const searchResources = (keyword) =>
-  axios.get(`${API_URL}/search?keyword=${encodeURIComponent(keyword)}`)
+  API.get(`${RESOURCE_URL}/search?keyword=${encodeURIComponent(keyword)}`);
 
 export const filterResourcesByLabel = (label) =>
-  axios.get(`${API_URL}/filter/label?label=${encodeURIComponent(label)}`)
+  API.get(`${RESOURCE_URL}/filter/label?label=${encodeURIComponent(label)}`);
 
 export const filterResourcesByType = (type) =>
-  axios.get(`${API_URL}/filter/type?type=${encodeURIComponent(type)}`)
+  API.get(`${RESOURCE_URL}/filter/type?type=${encodeURIComponent(type)}`);
 
-export const getNextResourceCode = (label) =>
-  axios.get(`${API_URL}/next-code?label=${encodeURIComponent(label)}`)
+export const filterResourcesByKind = (resourceKind) =>
+  API.get(`${RESOURCE_URL}/filter/kind?resourceKind=${encodeURIComponent(resourceKind)}`);
+
+export const getNextResourceCode = (label, resourceKind) =>
+  API.get(
+    `${RESOURCE_URL}/next-code?label=${encodeURIComponent(label)}&resourceKind=${encodeURIComponent(resourceKind)}`
+  );
 
 export const toggleResourceStatus = (id) =>
-  axios.put(`${API_URL}/${id}/toggle-status`)
+  API.put(`${RESOURCE_URL}/${id}/toggle-status`);

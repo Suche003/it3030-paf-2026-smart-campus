@@ -11,12 +11,16 @@ public interface ResourceRepository extends JpaRepository<Resource, Long> {
 
     List<Resource> findByLabel(String label);
 
+    List<Resource> findByResourceKind(String resourceKind);
+
     List<Resource> findByCodeNameStartingWith(String prefix);
 
-    List<Resource> findByNameContainingIgnoreCaseOrTypeContainingIgnoreCaseOrLabelContainingIgnoreCaseOrCodeNameContainingIgnoreCase(
+    List<Resource> findByNameContainingIgnoreCaseOrTypeContainingIgnoreCaseOrLabelContainingIgnoreCaseOrCodeNameContainingIgnoreCaseOrLocationContainingIgnoreCaseOrResourceKindContainingIgnoreCase(
             String name,
             String type,
             String label,
-            String codeName
+            String codeName,
+            String location,
+            String resourceKind
     );
 }
