@@ -1,4 +1,3 @@
-// frontend/src/services/bookingService.js
 import API from './api';
 
 export const getAllBookings = () => {
