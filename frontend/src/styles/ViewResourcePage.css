@@ -1,0 +1,185 @@
+.view-resource-page {
+  min-height: 100vh;
+  padding: 38px 5%;
+  color: #fff;
+}
+
+.view-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 22px;
+  padding: 34px 38px;
+  border-radius: 30px;
+  background:
+    linear-gradient(135deg, rgba(255, 47, 146, 0.25), rgba(125, 60, 255, 0.28)),
+    rgba(18, 18, 30, 0.8);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 24px 70px rgba(0,0,0,0.35);
+  margin-bottom: 28px;
+}
+
+.view-kicker {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: #f9a8d4;
+  font-weight: 900;
+}
+
+.view-hero h1 {
+  margin: 0;
+  font-size: clamp(42px, 5vw, 72px);
+  font-weight: 950;
+}
+
+.view-hero p {
+  margin: 8px 0 0;
+  color: rgba(255,255,255,0.72);
+  font-size: 18px;
+}
+
+.view-back-btn,
+.view-book-btn {
+  border: none;
+  text-decoration: none;
+  color: #fff;
+  font-weight: 900;
+  cursor: pointer;
+  padding: 16px 28px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #ff2f92, #8b3dff);
+  box-shadow: 0 14px 35px rgba(255,47,146,0.22);
+}
+
+.view-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 0.8fr);
+  gap: 24px;
+}
+
+.view-main-card,
+.view-side-card {
+  border-radius: 28px;
+  padding: 30px;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.05), rgba(125,60,255,0.08)),
+    rgba(16, 16, 28, 0.85);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.32);
+}
+
+.view-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.view-card-top h2 {
+  margin: 0;
+  font-size: 34px;
+  font-weight: 950;
+}
+
+.view-card-top p,
+.view-side-card p,
+.view-note {
+  color: rgba(255,255,255,0.7);
+}
+
+.view-status {
+  padding: 13px 22px;
+  border-radius: 999px;
+  font-weight: 950;
+}
+
+.view-status.active {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+.view-status.inactive {
+  background: linear-gradient(135deg, #ff4b84, #e11d48);
+}
+
+.view-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.view-badge-row span {
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  font-weight: 850;
+}
+
+.view-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+
+.view-detail-box {
+  padding: 18px;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.view-detail-box small {
+  display: block;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 7px;
+}
+
+.view-detail-box strong {
+  font-size: 18px;
+}
+
+.view-book-btn {
+  width: 100%;
+  margin-top: 26px;
+  font-size: 17px;
+}
+
+.view-side-card h3 {
+  margin-top: 0;
+  font-size: 24px;
+}
+
+.view-rule-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.view-rule-list span {
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.06);
+  border-left: 4px solid #ff2f92;
+  color: rgba(255,255,255,0.8);
+}
+
+@media (max-width: 900px) {
+  .view-hero,
+  .view-card-top {
+    flex-direction: column;
+  }
+
+  .view-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .view-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .view-back-btn {
+    width: 100%;
+    text-align: center;
+  }
+}

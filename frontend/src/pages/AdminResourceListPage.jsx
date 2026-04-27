@@ -10,9 +10,13 @@ import {
 } from '../services/resourceService'
 
 import {
-  RESOURCE_LABELS,
-  FACULTY_RESOURCE_TYPES,
-  COMMON_RESOURCE_TYPES
+  VENUE_CATEGORIES,
+  EQUIPMENT_CATEGORIES,
+  FACULTY_VENUE_TYPES,
+  COMMON_VENUE_TYPES,
+  EQUIPMENT_TYPES,
+  getKindLabel,
+  isEquipment
 } from '../utils/resourceOptions'
 
 import ConfirmModal from '../components/ConfirmModal'
@@ -29,7 +33,8 @@ export default function AdminResourceListPage() {
   const [deleteTarget, setDeleteTarget] = useState(null)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
-  const allTypes = [...FACULTY_RESOURCE_TYPES, ...COMMON_RESOURCE_TYPES]
+  const allCategories = [...VENUE_CATEGORIES, ...EQUIPMENT_CATEGORIES]
+  const allTypes = [...FACULTY_VENUE_TYPES, ...COMMON_VENUE_TYPES, ...EQUIPMENT_TYPES]
 
   const loadResources = async () => {
     setLoading(true)
@@ -54,13 +59,7 @@ export default function AdminResourceListPage() {
   const handleToggleStatus = async (resource) => {
     try {
       await toggleResourceStatus(resource.id)
-
-      toast.success(
-        resource.status === 'ACTIVE'
-          ? 'Marked as Unavailable'
-          : 'Marked as Active'
-      )
-
+      toast.success(resource.status === 'ACTIVE' ? 'Marked as Unavailable' : 'Marked as Active')
       loadResources()
     } catch (error) {
       console.error(error)
@@ -124,6 +123,13 @@ export default function AdminResourceListPage() {
     }
   }
 
+  const resetFilters = () => {
+    setSearchTerm('')
+    setFilterType('')
+    setFilterValue('')
+    loadResources()
+  }
+
   if (loading) {
     return (
       <div className="page-container">
@@ -146,7 +152,7 @@ export default function AdminResourceListPage() {
         <div>
           <h1 className="page-title">Admin Resource Management</h1>
           <p className="page-subtitle">
-            Categorize, search, filter and manage all campus resources.
+            Manage venues and equipment in the UniGo resource catalogue.
           </p>
         </div>
 
@@ -158,7 +164,7 @@ export default function AdminResourceListPage() {
       <div className="toolbar">
         <input
           type="text"
-          placeholder="Search by name, code, type or faculty"
+          placeholder="Search by name, code, kind, category, type or location"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input"
@@ -177,8 +183,9 @@ export default function AdminResourceListPage() {
           className="filter-select"
         >
           <option value="">Filter By</option>
-          <option value="label">Faculty / Category</option>
-          <option value="type">Resource Type</option>
+          <option value="kind">Resource Kind</option>
+          <option value="label">Category</option>
+          <option value="type">Type</option>
         </select>
 
         <select
@@ -189,14 +196,25 @@ export default function AdminResourceListPage() {
         >
           <option value="">Select</option>
 
+          {filterType === 'kind' && (
+            <>
+              <option value="VENUE">Venue</option>
+              <option value="EQUIPMENT">Equipment</option>
+            </>
+          )}
+
           {filterType === 'label' &&
-            RESOURCE_LABELS.map((label) => (
-              <option key={label} value={label}>{label}</option>
+            allCategories.map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
             ))}
 
           {filterType === 'type' &&
             allTypes.map((type) => (
-              <option key={type} value={type}>{type}</option>
+              <option key={type} value={type}>
+                {type}
+              </option>
             ))}
         </select>
 
@@ -204,7 +222,7 @@ export default function AdminResourceListPage() {
           Apply
         </button>
 
-        <button onClick={loadResources} className="reset-btn">
+        <button onClick={resetFilters} className="reset-btn">
           Reset
         </button>
       </div>
@@ -212,67 +230,57 @@ export default function AdminResourceListPage() {
       {resources.length === 0 ? (
         <p className="info-text">No resources found.</p>
       ) : (
-        <div className="table-wrapper">
-          <table className="resource-table">
-            <thead>
-              <tr>
-                <th>Code</th>
-                <th>Name</th>
-                <th>Faculty</th>
-                <th>Type</th>
-                <th>Capacity</th>
-                <th>Location</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
+        <div className="resource-card-grid">
+          {resources.map((resource) => {
+            const equipment = isEquipment(resource.resourceKind)
 
-            <tbody>
-              {resources.map((resource) => (
-                <tr key={resource.id}>
-                  <td className="code-cell">{resource.codeName}</td>
-                  <td className="name-cell">{resource.name}</td>
-                  <td>
-                  <span className="table-label faculty-label">{resource.label}</span>
-                  </td>
-                  <td>
-                  <span className="table-label type-label">{resource.type}</span>
-                  </td>
-                  <td>{resource.capacity}</td>
-                  <td>{resource.location}</td>
+            return (
+              <div className="resource-card" key={resource.id}>
+                <div className="resource-card-top">
+                  <h2 className="resource-card-name">{resource.name}</h2>
+                  <span className="resource-code">{resource.codeName}</span>
+                </div>
 
-                  <td>
-                    <button
-                      onClick={() => handleToggleStatus(resource)}
-                      className={`status-toggle-btn ${
-                        resource.status === 'ACTIVE' ? 'active' : 'inactive'
-                      }`}
-                    >
-                      {resource.status === 'ACTIVE' ? 'Active' : 'Unavailable'}
-                    </button>
-                  </td>
+                <div className="resource-card-meta">
+                  <span className={`kind-badge ${equipment ? 'equipment' : 'venue'}`}>
+                    {getKindLabel(resource.resourceKind)}
+                  </span>
 
-                  <td>
-                    <div className="action-buttons">
-                      <Link
-                        to={`/admin/resources/edit/${resource.id}`}
-                        className="table-btn edit-btn"
-                      >
-                        Edit
-                      </Link>
+                  <button
+                    onClick={() => handleToggleStatus(resource)}
+                    className={`status-toggle-btn ${
+                      resource.status === 'ACTIVE' ? 'active' : 'inactive'
+                    }`}
+                  >
+                    {resource.status === 'ACTIVE' ? 'Active' : 'Unavailable'}
+                  </button>
+                </div>
 
-                      <button
-                        onClick={() => openDeleteModal(resource)}
-                        className="table-btn delete-btn"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                <Link
+                  to={`/admin/resources/view/${resource.id}`}
+                  className="view-details-btn"
+                >
+                  View Details
+                </Link>
+
+                <div className="resource-card-actions">
+                  <Link
+                    to={`/admin/resources/edit/${resource.id}`}
+                    className="card-action-btn update-btn"
+                  >
+                    Update
+                  </Link>
+
+                  <button
+                    onClick={() => openDeleteModal(resource)}
+                    className="card-action-btn delete-btn"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
 
