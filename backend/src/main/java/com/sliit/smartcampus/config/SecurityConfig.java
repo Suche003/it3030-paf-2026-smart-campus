@@ -15,7 +15,7 @@ import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
-@EnableMethodSecurity   
+@EnableMethodSecurity
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtFilter;
@@ -25,51 +25,46 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-            //  disable CSRF (API only)
             .csrf(csrf -> csrf.disable())
-
-            //  CORS enable
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
 
-            //  no session (JWT system)
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
 
             .authorizeHttpRequests(auth -> auth
 
-                // preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // public APIs (NO AUTH)
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/oauth2/**").permitAll()
-                .requestMatchers("/login/**").permitAll()
+                // Public auth/OAuth endpoints
+                .requestMatchers(
+                        "/api/auth/**",
+                        "/oauth2/**",
+                        "/login/**",
+                        "/error"
+                ).permitAll()
 
-                // ADMIN ONLY API (FIXED PATH)
-                .requestMatchers("/api/auth/admin/**").hasRole("ADMIN")
+                // TESTING ONLY endpoints
+                .requestMatchers("/api/test/**").permitAll()
 
-                // other APIs
-               .requestMatchers("/api/notifications/**").authenticated()
+                // Real APIs stay protected
+                .requestMatchers("/api/resources/**").authenticated()
+                .requestMatchers("/api/bookings/**").authenticated()
+                .requestMatchers("/api/notifications/**").authenticated()
                 .requestMatchers("/api/profile/**").authenticated()
 
                 .anyRequest().authenticated()
             )
 
-            // OAuth login (keep if using google login)
             .oauth2Login(oauth ->
                 oauth.successHandler(successHandler)
             )
 
-            // JWT FILTER (IMPORTANT)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    
-    // CORS CONFIG (FRONTEND FIX)
-    
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
 
@@ -87,7 +82,6 @@ public class SecurityConfig {
         ));
 
         config.setExposedHeaders(List.of("Authorization"));
-
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =

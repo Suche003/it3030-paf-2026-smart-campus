@@ -21,7 +21,7 @@ public class Resource {
 
     @NotBlank(message = "Resource kind is required")
     @Column(nullable = false)
-    private String resourceKind; // VENUE or EQUIPMENT
+    private String resourceKind;
 
     @NotBlank(message = "Resource name is required")
     @Column(nullable = false)
@@ -33,7 +33,7 @@ public class Resource {
 
     @NotBlank(message = "Resource category is required")
     @Column(nullable = false)
-    private String label; // Venue: faculty/common area | Equipment: portable/fixed
+    private String label;
 
     @NotBlank(message = "Resource type is required")
     @Column(nullable = false)
@@ -43,7 +43,7 @@ public class Resource {
     @Column(nullable = true)
     private Integer capacity;
 
-    @Min(value = 1, message = "Quantity must be at least 1")
+    @Min(value = 0, message = "Quantity cannot be negative")
     @Column(nullable = true)
     private Integer quantity;
 

@@ -26,6 +26,8 @@ function Login() {
     const token = params.get("token");
     const role = params.get("role");
     const googleEmail = params.get("email");
+    const userId = params.get("id");
+    const name = params.get("name");
 
     if (token && role) {
       localStorage.setItem("token", token);
@@ -35,6 +37,14 @@ function Login() {
         localStorage.setItem("email", googleEmail);
       } else {
         localStorage.removeItem("email");
+      }
+
+      if (userId) {
+        localStorage.setItem("userId", userId);
+      }
+
+      if (name) {
+        localStorage.setItem("name", name);
       }
 
       redirectByRole(role);
@@ -49,7 +59,10 @@ function Login() {
 
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
-      localStorage.setItem("email", email);
+      localStorage.setItem("userId", res.data.id);
+      localStorage.setItem("name", res.data.name || "");
+      localStorage.setItem("email", res.data.email);
+      localStorage.setItem("user", JSON.stringify(res.data));
 
       redirectByRole(res.data.role);
     } catch {
@@ -57,20 +70,12 @@ function Login() {
     }
   };
 
-  
-  // GOOGLE LOGIN
-
   const googleLogin = () => {
-    window.location.href =
-      "http://localhost:8081/oauth2/authorization/google";
+    window.location.href = "http://localhost:8081/oauth2/authorization/google";
   };
 
-  
-  // FACEBOOK LOGIN (FIXED)
-
   const facebookLogin = () => {
-    window.location.href =
-      "http://localhost:8081/oauth2/authorization/facebook";
+    window.location.href = "http://localhost:8081/oauth2/authorization/facebook";
   };
 
   return (
@@ -115,13 +120,11 @@ function Login() {
           Login
         </button>
 
-        {/* GOOGLE */}
         <button className="google-btn" onClick={googleLogin}>
           <span className="google-icon">G</span>
           Login with Google
         </button>
 
-        {/* FACEBOOK (FIXED) */}
         <button className="facebook-btn" onClick={facebookLogin}>
           <div className="facebook-icon">f</div>
           Continue with Facebook
