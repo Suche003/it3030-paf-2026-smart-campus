@@ -7,6 +7,12 @@ import EditResourcePage from './pages/EditResourcePage'
 import ViewResourcePage from './pages/ViewResourcePage'
 import ResourceBrowsePage from './pages/ResourceBrowsePage'
 
+import AddTicketPage from './pages/AddTicketPage'
+import StudentTicketListPage from './pages/StudentTicketListPage'
+import EditTicketPage from './pages/EditTicketPage'
+import AdminTicketListPage from './pages/AdminTicketListPage'
+import TechnicianTicketPage from './pages/TechnicianTicketPage'
+
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Admin from './pages/Admin'
@@ -54,12 +60,16 @@ export default function App() {
           <Route path="/admin/resources/add" element={<ProtectedRoute role="ADMIN"><AddResourcePage /></ProtectedRoute>} />
           <Route path="/admin/resources/edit/:id" element={<ProtectedRoute role="ADMIN"><EditResourcePage /></ProtectedRoute>} />
           <Route path="/admin/resources/view/:id" element={<ProtectedRoute role="ADMIN"><ViewResourcePage /></ProtectedRoute>} />
+          <Route path="/admin/tickets" element={<ProtectedRoute role="ADMIN"><AdminTicketListPage /></ProtectedRoute>} />
 
           {/* STUDENT */}
           <Route path="/student" element={<ProtectedRoute role="STUDENT"><Student /></ProtectedRoute>} />
           <Route path="/student/resources" element={<ProtectedRoute role="STUDENT"><ResourceBrowsePage /></ProtectedRoute>} />
           <Route path="/student/resources/view/:id" element={<ProtectedRoute role="STUDENT"><ViewResourcePage /></ProtectedRoute>} />
           <Route path="/student/bookings" element={<ProtectedRoute role="STUDENT"><MyBookings /></ProtectedRoute>} />
+          <Route path="/student/tickets" element={<ProtectedRoute role="STUDENT"><StudentTicketListPage /></ProtectedRoute>} />
+          <Route path="/student/tickets/create" element={<ProtectedRoute role="STUDENT"><AddTicketPage /></ProtectedRoute>} />
+          <Route path="/student/tickets/edit/:id" element={<ProtectedRoute role="STUDENT"><EditTicketPage /></ProtectedRoute>} />
 
           {/* LECTURER */}
           <Route path="/lecturer" element={<ProtectedRoute role="LECTURER"><Lecturer /></ProtectedRoute>} />
@@ -70,6 +80,7 @@ export default function App() {
           {/* TECHNICIAN */}
           <Route path="/technician" element={<ProtectedRoute role="TECHNICIAN"><Technician /></ProtectedRoute>} />
           <Route path="/technician/bookings" element={<ProtectedRoute role="TECHNICIAN"><TechnicianBookings /></ProtectedRoute>} />
+          <Route path="/technician/tickets" element={<ProtectedRoute role="TECHNICIAN"><TechnicianTicketPage /></ProtectedRoute>} />
         </Routes>
       </main>
     </>
