@@ -3,9 +3,10 @@ import toast from "react-hot-toast";
 import {
   getMyTechTickets,
   updateTechStatus,
-  addResolution
+  addResolution,
 } from "../services/technicianTicketService";
 import { getCommentsByTicket } from "../services/commentService";
+import "../styles/TechnicianTicketPage.css";
 
 export default function TechnicianTicketPage() {
   const [tickets, setTickets] = useState([]);
@@ -15,17 +16,19 @@ export default function TechnicianTicketPage() {
   const [activeResolveId, setActiveResolveId] = useState(null);
   const [resolutionNote, setResolutionNote] = useState("");
 
-  // Hardcoded for now; ideally fetched from an Auth context
-  const techId = 1;
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const techId = user.id || 13;
 
   const loadTickets = async () => {
     try {
       setLoading(true);
+
       const res = await getMyTechTickets(techId);
       const ticketList = Array.isArray(res.data) ? res.data : [];
       setTickets(ticketList);
 
       const commentsData = {};
+
       await Promise.all(
         ticketList.map(async (t) => {
           try {
@@ -36,8 +39,9 @@ export default function TechnicianTicketPage() {
           }
         })
       );
+
       setCommentsMap(commentsData);
-    } catch (err) {
+    } catch {
       toast.error("Failed to load tickets");
     } finally {
       setLoading(false);
@@ -60,10 +64,16 @@ export default function TechnicianTicketPage() {
 
   const submitResolution = async (e, id) => {
     e.preventDefault();
-    if (!resolutionNote.trim()) return toast.error("Resolution note required");
+
+    if (!resolutionNote.trim()) {
+      toast.error("Resolution note required");
+      return;
+    }
+
     try {
       await addResolution(id, resolutionNote);
       await updateTechStatus(id, "RESOLVED");
+
       toast.success("Ticket Resolved");
       setActiveResolveId(null);
       setResolutionNote("");
@@ -73,12 +83,23 @@ export default function TechnicianTicketPage() {
     }
   };
 
-  const filteredTickets = tickets.filter(t => 
-    filterStatus === "" || t.status === filterStatus
+  const filteredTickets = tickets.filter(
+    (t) => filterStatus === "" || t.status === filterStatus
   );
+
+  const getImageUrl = (img) => {
+    if (!img) return "";
+
+    if (img.startsWith("http")) return img;
+
+    return img.startsWith("/")
+      ? `http://localhost:8081${img}`
+      : `http://localhost:8081/${img}`;
+  };
 
   const getStatusClass = (status) => {
     const s = status?.toUpperCase();
+
     if (s === "OPEN") return "badge-open";
     if (s === "IN_PROGRESS") return "badge-progress";
     if (s === "RESOLVED") return "badge-resolved";
@@ -86,182 +107,193 @@ export default function TechnicianTicketPage() {
   };
 
   return (
-    <div className="page-container">
-      <header className="page-header">
+    <div className="tech-ticket-page">
+      <header className="tech-ticket-header">
         <div>
-          <h1 className="page-title">Technician Dashboard</h1>
-          <p className="page-subtitle">Assigned Tickets & Task Management</p>
+          <h1>Technician Dashboard</h1>
+          <p>Assigned Tickets & Task Management</p>
         </div>
-        <div className="stats-mini">
-          <span className="total-label">My Tickets</span>
-          <span className="total-badge">{tickets.length}</span>
+
+        <div className="tech-ticket-count">
+          <span>My Tickets</span>
+          <b>{tickets.length}</b>
         </div>
       </header>
 
-      <div className="toolbar">
-        <div className="filter-group">
-          <button 
-            className={`filter-btn ${filterStatus === "" ? "active" : ""}`} 
+      <div className="tech-ticket-toolbar">
+        <div className="tech-filter-group">
+          <button
+            type="button"
+            className={filterStatus === "" ? "active" : ""}
             onClick={() => setFilterStatus("")}
           >
             All Tickets
           </button>
-          {["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"].map(status => (
-            <button 
+
+          {["OPEN", "IN_PROGRESS", "RESOLVED", "CLOSED"].map((status) => (
+            <button
+              type="button"
               key={status}
-              className={`filter-btn ${filterStatus === status ? "active" : ""}`} 
+              className={filterStatus === status ? "active" : ""}
               onClick={() => setFilterStatus(status)}
             >
               {status.replace("_", " ")}
             </button>
           ))}
         </div>
-        
-        <button className="btn-reset" onClick={() => { setFilterStatus(""); loadTickets(); }}>
+
+        <button
+          type="button"
+          className="tech-reset-btn"
+          onClick={() => {
+            setFilterStatus("");
+            loadTickets();
+          }}
+        >
           Reset Filters
         </button>
       </div>
 
       {loading ? (
-        <div className="loading-state">Loading assigned tasks...</div>
+        <div className="tech-empty">Loading assigned tasks...</div>
       ) : (
-        <div className="admin-grid">
-          {filteredTickets.length > 0 ? filteredTickets.map((t) => (
-            <div key={t.id} className="card admin-ticket-card">
-              <div className="admin-card-body">
-                <div className="header-row">
-                  <span className="ticket-id-tag">TICKET #{t.id}</span>
-                  <span className={`status-dropdown-pill ${getStatusClass(t.status)}`}>
-                    {t.status}
-                  </span>
-                </div>
+        <div className="tech-ticket-grid">
+          {filteredTickets.length > 0 ? (
+            filteredTickets.map((t) => {
+              const ticketImages = [
+                t.image1Url || t.image1url,
+                t.image2Url || t.image2url,
+                t.image3Url || t.image3url,
+              ].filter(Boolean);
 
-                <h3>{t.title}</h3>
-                <p className="description-text">{t.description}</p>
+              return (
+                <div key={t.id} className="tech-ticket-card">
+                  <div className="tech-ticket-card-top">
+                    <span className="ticket-id-tag">TICKET #{t.id}</span>
+                    <span className={`status-pill ${getStatusClass(t.status)}`}>
+                      {t.status}
+                    </span>
+                  </div>
 
-                <div className="admin-meta-grid">
-                  <div className="meta-item">
-                    <label>Resource / Asset</label>
-                    <span className="meta-value resource-highlight">🛠️ {t.resourceName || t.resource || "Not Assigned"}</span>
-                  </div>
-                  <div className="meta-item">
-                    <label>Priority</label>
-                    <span className={`tag-priority ${t.priority?.toLowerCase()}`}>{t.priority}</span>
-                  </div>
-                  <div className="meta-item">
-                    <label>Location</label>
-                    <span className="meta-value">📍 {t.location || "N/A"}</span>
-                  </div>
-                </div>
+                  <h2>{t.title}</h2>
 
-                <div className="comments-box-system">
-                  <label className="section-label">Comments</label>
-                  <div className="comments-scroll">
+                  <div className="tech-meta-grid">
+                    <div className="tech-meta-item full">
+                      <label>Resource / Asset</label>
+                      <span>
+                        🛠️ {t.resourceName || t.resource || "Not Assigned"}
+                      </span>
+                    </div>
+
+                    <div className="tech-meta-item">
+                      <label>Priority</label>
+                      <span className={`priority ${t.priority?.toLowerCase()}`}>
+                        {t.priority}
+                      </span>
+                    </div>
+
+                    <div className="tech-meta-item">
+                      <label>Location</label>
+                      <span>📍 {t.location || "N/A"}</span>
+                    </div>
+                  </div>
+
+                  {ticketImages.length > 0 && (
+                    <div className="tech-ticket-images">
+                      {ticketImages.map((img, index) => (
+                        <img
+                          key={index}
+                          src={getImageUrl(img)}
+                          alt={`ticket-${index}`}
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="comments-box-system">
+                    <label>Comments</label>
+
                     {(commentsMap[t.id] || []).length > 0 ? (
                       commentsMap[t.id].map((c) => (
                         <div key={c.id} className="comment-bubble">
-                          <span className="msg">💬 {c.comment || c.text}</span>
+                          💬 {c.comment || c.text}
                         </div>
                       ))
                     ) : (
-                      <p className="no-data-text">No technical notes recorded.</p>
+                      <p>No technical notes recorded.</p>
                     )}
                   </div>
+
+                  <div className="tech-actions">
+                    {t.status === "OPEN" && (
+                      <button
+                        type="button"
+                        onClick={() => handleStatusUpdate(t.id, "IN_PROGRESS")}
+                      >
+                        Start Working
+                      </button>
+                    )}
+
+                    {t.status === "IN_PROGRESS" && activeResolveId !== t.id && (
+                      <button
+                        type="button"
+                        onClick={() => setActiveResolveId(t.id)}
+                      >
+                        Submit Resolution
+                      </button>
+                    )}
+
+                    {t.status === "RESOLVED" && (
+                      <button
+                        type="button"
+                        onClick={() => handleStatusUpdate(t.id, "CLOSED")}
+                      >
+                        Close Ticket
+                      </button>
+                    )}
+                  </div>
+
+                  {activeResolveId === t.id && (
+                    <form
+                      onSubmit={(e) => submitResolution(e, t.id)}
+                      className="inline-action-form"
+                    >
+                      <textarea
+                        placeholder="Enter final resolution note..."
+                        required
+                        value={resolutionNote}
+                        onChange={(e) => setResolutionNote(e.target.value)}
+                      />
+
+                      <div className="form-buttons">
+                        <button type="submit" className="btn-confirm">
+                          Confirm
+                        </button>
+
+                        <button
+                          type="button"
+                          className="btn-cancel"
+                          onClick={() => {
+                            setActiveResolveId(null);
+                            setResolutionNote("");
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </form>
+                  )}
                 </div>
-
-                <div className="admin-actions">
-                  {t.status === "OPEN" && (
-                    <button className="btn-assign" onClick={() => handleStatusUpdate(t.id, "IN_PROGRESS")}>
-                      Start Working
-                    </button>
-                  )}
-                  
-                  {t.status === "IN_PROGRESS" && activeResolveId !== t.id && (
-                    <button className="btn-assign" onClick={() => setActiveResolveId(t.id)}>
-                      Submit Resolution
-                    </button>
-                  )}
-
-                  {t.status === "RESOLVED" && (
-                    <button className="btn-assign" onClick={() => handleStatusUpdate(t.id, "CLOSED")}>
-                      Close Ticket
-                    </button>
-                  )}
-                </div>
-
-                {activeResolveId === t.id && (
-                  <form onSubmit={(e) => submitResolution(e, t.id)} className="inline-action-form">
-                    <textarea 
-                      placeholder="Enter Final Resolution Note..."
-                      required 
-                      value={resolutionNote}
-                      onChange={e => setResolutionNote(e.target.value)}
-                    />
-                    <div className="form-buttons">
-                      <button type="submit" className="btn-confirm">Confirm</button>
-                      <button type="button" onClick={() => { setActiveResolveId(null); setResolutionNote(""); }} className="btn-cancel">Cancel</button>
-                    </div>
-                  </form>
-                )}
-              </div>
-            </div>
-          )) : (
-            <div className="no-tickets-msg">No tickets found for this status.</div>
+              );
+            })
+          ) : (
+            <div className="tech-empty">No tickets found for this status.</div>
           )}
         </div>
       )}
-
-      <style>{`
-        .page-container { padding: 20px; color: #fff; }
-        .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-        .page-title { font-size: 24px; margin-bottom: 10px; }
-        .page-subtitle { color: #94a3b8; font-size: 14px; margin: 5px 0 0 0; }
-
-        .stats-mini { display: flex; align-items: center; gap: 10px; background: #3f3f40; padding: 8px 16px; border-radius: 50px; border: 1px solid #4f4f50; }
-        .total-badge { background: #8B3DFF; color: white; padding: 2px 10px; border-radius: 20px; font-weight: bold; }
-
-        .toolbar { display: flex; justify-content: space-between; background: #252526; padding: 15px 20px; border-radius: 12px; margin-bottom: 30px; border: 1px solid #333; align-items: center; }
-        .filter-group { display: flex; gap: 42px; flex-wrap: wrap; }
-        .filter-btn { background: transparent; color: #94a3b8; border: 1px solid #444; padding: 8px 18px; border-radius: 10px; cursor: pointer; transition: 0.2s; font-weight: 600; }
-        .filter-btn.active { background: #ff6b97; color: white; border-color: #ff6b97; box-shadow: 0 4px 12px rgba(255, 107, 151, 0.3); }
-        .btn-reset { background: transparent; color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 18px; border-radius: 10px; cursor: pointer; }
-
-        .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
-        .admin-ticket-card { background: #303031; border-radius: 12px; border: 1px solid #444; overflow: hidden; }
-        .admin-card-body { padding: 20px; }
-
-        .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .ticket-id-tag { color: #fcfafe; font-weight: 700; font-family: monospace; font-size: 14px; }
-        .status-dropdown-pill { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-
-        .admin-meta-grid { display: grid; grid-template-columns: 1fr 1fr; background: #252526; padding: 15px; border-radius: 10px; margin: 15px 0; gap: 12px; border: 1px solid #333; }
-        .meta-item:first-child { grid-column: span 2; border-bottom: 1px solid #333; padding-bottom: 8px; }
-        .meta-item label { display: block; font-size: 10px; color: #94a3b8; font-weight: 800; text-transform: uppercase; margin-bottom: 4px; }
-        .meta-value { font-size: 14px; }
-
-        .comments-box-system { background: #1a1a1b; border-radius: 8px; padding: 12px; margin-bottom: 15px; border: 1px solid #333; }
-        .section-label { font-size: 10px; color: #64748b; font-weight: 800; text-transform: uppercase; display: block; margin-bottom: 8px; }
-        .comments-scroll { max-height: 100px; overflow-y: auto; }
-        .comment-bubble { background: #3b3b3c; padding: 8px; border-radius: 6px; margin-bottom: 6px; border-left: 3px solid #8B3DFF; font-size: 13px; }
-
-        .btn-assign { width: 100%; background: #8B3DFF; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .inline-action-form { background: #252526; padding: 15px; border-radius: 8px; display: flex; flex-direction: column; gap: 10px; border: 1px solid #444; }
-        .inline-action-form textarea { background: #1a1a1b; color: white; border: 1px solid #444; padding: 10px; border-radius: 6px; resize: none; min-height: 80px; }
-        .form-buttons { display: flex; gap: 10px; }
-        .btn-confirm { flex: 2; background: #10b981; color: white; border: none; padding: 8px; border-radius: 6px; font-weight: 600; cursor: pointer; }
-        .btn-cancel { flex: 1; background: #4b5563; color: white; border: none; border-radius: 6px; cursor: pointer; }
-
-        .badge-open { background: #1e3a8a; color: #60a5fa; }
-        .badge-progress { background: #451a03; color: #fbbf24; }
-        .badge-resolved { background: #064e3b; color: #6ee7b7; }
-        .badge-closed { background: #3f3f46; color: #d1d5db; }
-
-        .tag-priority.high { color: #ef4444; font-weight: 700; }
-        .tag-priority.medium { color: #f59e0b; font-weight: 700; }
-        .tag-priority.low { color: #10b981; font-weight: 700; }
-        
-        .loading-state, .no-tickets-msg { text-align: center; padding: 40px; color: #94a3b8; }
-      `}</style>
     </div>
   );
 }

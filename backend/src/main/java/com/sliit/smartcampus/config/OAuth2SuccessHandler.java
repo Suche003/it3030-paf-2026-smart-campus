@@ -11,6 +11,8 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
@@ -31,50 +33,53 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     ) throws IOException {
 
         try {
+            Role forcedRole = Role.STUDENT;
 
-            String provider =
-                    ((OAuth2AuthenticationToken) authentication)
-                            .getAuthorizedClientRegistrationId();
+            String provider = ((OAuth2AuthenticationToken) authentication)
+                    .getAuthorizedClientRegistrationId();
 
             OAuth2User oAuthUser = (OAuth2User) authentication.getPrincipal();
 
             String email = oAuthUser.getAttribute("email");
             String name = oAuthUser.getAttribute("name");
 
-            // fallback (safe)
-            if (email == null) {
+            if (email == null || email.isBlank()) {
                 String id = oAuthUser.getAttribute("sub");
-                email = "google_" + id + "@gmail.com";
+                email = provider + "_" + id + "@unigo.oauth";
             }
 
-            User user = repo.findByEmail(email).orElse(null);
-
-            if (user == null) {
-                user = new User();
-                user.setEmail(email);
-                user.setName(name); // ✅ Google name save
-                user.setRole(Role.STUDENT);
-            } else {
-                // ALWAYS UPDATE GOOGLE DATA
-                user.setName(name);
-                user.setRole(Role.STUDENT);
+            if (name == null || name.isBlank()) {
+                name = "Google User";
             }
+
+            User user = repo.findByEmail(email).orElse(new User());
+
+            user.setEmail(email);
+            user.setName(name);
+
+            // ✅ GOOGLE LOGIN USERS ALWAYS STUDENT
+            user.setRole(forcedRole);
 
             repo.save(user);
 
-            String token = jwtService.generateToken(email, user.getRole().name());
+            String token = jwtService.generateToken(email, forcedRole.name());
 
-            response.sendRedirect(
-                    "http://localhost:5173/login?token=" + token +
-                            "&role=" + user.getRole().name() +
-                            "&email=" + email +
-                            "&name=" + name +
-                            "&provider=" + provider
-            );
+            String redirectUrl = "http://localhost:5173/login"
+                    + "?token=" + encode(token)
+                    + "&role=" + forcedRole.name()
+                    + "&email=" + encode(email)
+                    + "&name=" + encode(name)
+                    + "&provider=" + encode(provider);
+
+            response.sendRedirect(redirectUrl);
 
         } catch (Exception e) {
             e.printStackTrace();
             response.sendRedirect("http://localhost:5173/login?error=server_error");
         }
+    }
+
+    private String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 }

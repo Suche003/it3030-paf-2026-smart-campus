@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import toast from "react-hot-toast";
-import { createTicket } from "../services/ticketService";
+import { createTicketWithImages } from "../services/ticketService";
 import { getAllResources } from "../services/resourceService";
 
 export default function AddTicketPage() {
@@ -15,21 +15,25 @@ export default function AddTicketPage() {
     resourceName: "",
     resourceId: "",
     priority: "MEDIUM",
-    studentId: 1
+    studentId: Number(localStorage.getItem("userId")) || 1,
   });
 
+  const [images, setImages] = useState([]);
+  const [previews, setPreviews] = useState([]);
   const [errors, setErrors] = useState({});
   const [resources, setResources] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchResources = async () => {
       try {
         const res = await getAllResources();
         setResources(res.data || []);
-      } catch (err) {
+      } catch {
         toast.error("Failed to load resources");
       }
     };
+
     fetchResources();
   }, []);
 
@@ -37,12 +41,13 @@ export default function AddTicketPage() {
     const { name, value } = e.target;
 
     if (name === "resourceName") {
-      const selected = resources.find(r => r.name === value);
+      const selected = resources.find((r) => r.name === value);
+
       setFormData({
         ...formData,
         resourceName: value,
         resourceId: selected ? selected.id : "",
-        location: selected ? selected.location : ""
+        location: selected ? selected.location : "",
       });
     } else {
       setFormData({ ...formData, [name]: value });
@@ -51,6 +56,29 @@ export default function AddTicketPage() {
     if (errors[name]) {
       setErrors({ ...errors, [name]: null });
     }
+  };
+
+  const handleImages = (e) => {
+    const selectedFiles = Array.from(e.target.files || []);
+
+    if (selectedFiles.length > 3) {
+      toast.error("You can upload only 3 images");
+      e.target.value = "";
+      return;
+    }
+
+    const validFiles = selectedFiles.filter((file) =>
+      file.type.startsWith("image/")
+    );
+
+    if (validFiles.length !== selectedFiles.length) {
+      toast.error("Only image files are allowed");
+      e.target.value = "";
+      return;
+    }
+
+    setImages(validFiles);
+    setPreviews(validFiles.map((file) => URL.createObjectURL(file)));
   };
 
   const getFieldClass = (name) =>
@@ -72,6 +100,8 @@ export default function AddTicketPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (isSubmitting) return;
+
     const validationErrors = validate();
 
     if (Object.keys(validationErrors).length > 0) {
@@ -81,11 +111,31 @@ export default function AddTicketPage() {
     }
 
     try {
-      await createTicket(formData);
+      setIsSubmitting(true);
+
+      const data = new FormData();
+
+      data.append("title", formData.title);
+      data.append("category", formData.category);
+      data.append("location", formData.location);
+      data.append("contact", formData.contact);
+      data.append("resourceName", formData.resourceName);
+      data.append("resourceId", formData.resourceId);
+      data.append("priority", formData.priority);
+      data.append("studentId", Number(localStorage.getItem("userId")) || 1);
+
+      if (images[0]) data.append("image1", images[0]);
+      if (images[1]) data.append("image2", images[1]);
+      if (images[2]) data.append("image3", images[2]);
+
+      await createTicketWithImages(data);
+
       toast.success("Ticket created successfully");
       navigate("/student/tickets");
     } catch (err) {
-      toast.error("Failed to create ticket");
+      toast.error(err.response?.data || "Failed to create ticket");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -95,16 +145,16 @@ export default function AddTicketPage() {
         <div>
           <h1 className="form-page-title text-white">Create Ticket</h1>
           <p className="form-page-subtitle">
-            Standardized request for campus resource support.
+            Add issue details and upload up to 3 supporting images.
           </p>
         </div>
+
         <Link to="/student/tickets" className="back-link-btn">
           <span>&larr; Back to List</span>
         </Link>
       </header>
 
       <form onSubmit={handleSubmit} className="resource-form-card">
-
         <div className="form-group">
           <label>Issue Title</label>
           <div className="input-wrap">
@@ -142,7 +192,9 @@ export default function AddTicketPage() {
             >
               <option value="">Select Resource</option>
               {resources.map((r) => (
-                <option key={r.id} value={r.name}>{r.name}</option>
+                <option key={r.id} value={r.name}>
+                  {r.name}
+                </option>
               ))}
             </select>
           </div>
@@ -158,9 +210,13 @@ export default function AddTicketPage() {
               className={getFieldClass("location")}
             >
               <option value="">Select Location</option>
-              {[...new Set(resources.map(r => r.location))].map((loc, idx) => (
-                <option key={idx} value={loc}>{loc}</option>
-              ))}
+              {[...new Set(resources.map((r) => r.location).filter(Boolean))].map(
+                (loc, idx) => (
+                  <option key={idx} value={loc}>
+                    {loc}
+                  </option>
+                )
+              )}
             </select>
           </div>
         </div>
@@ -177,6 +233,7 @@ export default function AddTicketPage() {
               <option value="LOW">LOW</option>
               <option value="MEDIUM">MEDIUM</option>
               <option value="HIGH">HIGH</option>
+              <option value="CRITICAL">CRITICAL</option>
             </select>
           </div>
         </div>
@@ -189,13 +246,44 @@ export default function AddTicketPage() {
               value={formData.contact}
               onChange={handleChange}
               className={getFieldClass("contact")}
-              placeholder="Email or Phone Number"
+              placeholder="Email or phone number"
             />
           </div>
         </div>
 
-        <button type="submit" className="submit-btn">
-          Create Ticket
+        <div className="form-group">
+          <label>Upload Images Maximum 3</label>
+          <div className="input-wrap">
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleImages}
+            />
+          </div>
+
+          {previews.length > 0 && (
+            <div style={{ display: "flex", gap: "12px", marginTop: "14px" }}>
+              {previews.map((src, index) => (
+                <img
+                  key={index}
+                  src={src}
+                  alt={`preview-${index}`}
+                  style={{
+                    width: "120px",
+                    height: "90px",
+                    objectFit: "cover",
+                    borderRadius: "12px",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                  }}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button type="submit" className="submit-btn" disabled={isSubmitting}>
+          {isSubmitting ? "Creating..." : "Create Ticket"}
         </button>
       </form>
     </div>

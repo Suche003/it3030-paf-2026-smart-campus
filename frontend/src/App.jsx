@@ -15,6 +15,8 @@ import TechnicianTicketPage from './pages/TechnicianTicketPage'
 
 import Login from './pages/Login'
 import Register from './pages/Register'
+import Home from './pages/Home' // ✅ NEW
+
 import Admin from './pages/Admin'
 import Student from './pages/Student'
 import Lecturer from './pages/Lecturer'
@@ -32,55 +34,192 @@ import './styles/App.css'
 export default function App() {
   const location = useLocation()
 
-  const noNavbarPages = ['/login', '/register', '/admin/resources']
+  // ❌ Pages without navbar
+  const noNavbarPages = [
+    '/login',
+    '/register',
+    '/admin/resources',
+    '/student',
+    '/lecturer'
+    ,'technician'
+    ,'notifications'
+    ,'profile'
+    ,'/student/tickets/create'
+    ,'/student/tickets/edit/:id'
+    ,'/admin/resources/add'
+    ,'/admin/resources/edit/:id'
+  ]
+
   const hideNavbar = noNavbarPages.includes(location.pathname)
 
-  const noShellPages = ['/login', '/register', '/admin/resources']
+  // ❌ Pages without main shell styling
+  const noShellPages = [
+    '/login',
+    '/register',
+    '/admin/resources',
+    '/student',
+    '/lecturer'
+  ]
+
   const noShell = noShellPages.includes(location.pathname)
 
   return (
     <>
       <Toaster position="top-right" />
 
+      {/* ✅ Navbar */}
       {!hideNavbar && <Navbar />}
 
       <main className={noShell ? 'plain-module-shell' : 'admin-module-shell'}>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
 
+          {/* ✅ HOME PAGE (UPDATED) */}
+          <Route path="/" element={<Home />} />
+
+          {/* AUTH */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          {/* COMMON */}
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/notifications" element={
+            <ProtectedRoute>
+              <Notifications />
+            </ProtectedRoute>
+          } />
 
           {/* ADMIN */}
-          <Route path="/admin" element={<ProtectedRoute role="ADMIN"><Admin /></ProtectedRoute>} />
-          <Route path="/admin/resources" element={<ProtectedRoute role="ADMIN"><AdminResourceListPage /></ProtectedRoute>} />
-          <Route path="/admin/resources/add" element={<ProtectedRoute role="ADMIN"><AddResourcePage /></ProtectedRoute>} />
-          <Route path="/admin/resources/edit/:id" element={<ProtectedRoute role="ADMIN"><EditResourcePage /></ProtectedRoute>} />
-          <Route path="/admin/resources/view/:id" element={<ProtectedRoute role="ADMIN"><ViewResourcePage /></ProtectedRoute>} />
-          <Route path="/admin/tickets" element={<ProtectedRoute role="ADMIN"><AdminTicketListPage /></ProtectedRoute>} />
+          <Route path="/admin" element={
+            <ProtectedRoute role="ADMIN">
+              <Admin />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/resources" element={
+            <ProtectedRoute role="ADMIN">
+              <AdminResourceListPage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/resources/add" element={
+            <ProtectedRoute role="ADMIN">
+              <AddResourcePage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/resources/edit/:id" element={
+            <ProtectedRoute role="ADMIN">
+              <EditResourcePage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/resources/view/:id" element={
+            <ProtectedRoute role="ADMIN">
+              <ViewResourcePage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/tickets" element={
+            <ProtectedRoute role="ADMIN">
+              <AdminTicketListPage />
+            </ProtectedRoute>
+          } />
 
           {/* STUDENT */}
-          <Route path="/student" element={<ProtectedRoute role="STUDENT"><Student /></ProtectedRoute>} />
-          <Route path="/student/resources" element={<ProtectedRoute role="STUDENT"><ResourceBrowsePage /></ProtectedRoute>} />
-          <Route path="/student/resources/view/:id" element={<ProtectedRoute role="STUDENT"><ViewResourcePage /></ProtectedRoute>} />
-          <Route path="/student/bookings" element={<ProtectedRoute role="STUDENT"><MyBookings /></ProtectedRoute>} />
-          <Route path="/student/tickets" element={<ProtectedRoute role="STUDENT"><StudentTicketListPage /></ProtectedRoute>} />
-          <Route path="/student/tickets/create" element={<ProtectedRoute role="STUDENT"><AddTicketPage /></ProtectedRoute>} />
-          <Route path="/student/tickets/edit/:id" element={<ProtectedRoute role="STUDENT"><EditTicketPage /></ProtectedRoute>} />
+          <Route path="/student" element={
+            <ProtectedRoute role="STUDENT">
+              <Student />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/student/resources" element={
+            <ProtectedRoute role="STUDENT">
+              <ResourceBrowsePage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/student/resources/view/:id" element={
+            <ProtectedRoute role="STUDENT">
+              <ViewResourcePage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/student/bookings" element={
+            <ProtectedRoute role="STUDENT">
+              <MyBookings />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/student/tickets" element={
+            <ProtectedRoute role="STUDENT">
+              <StudentTicketListPage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/student/tickets/create" element={
+            <ProtectedRoute role="STUDENT">
+              <AddTicketPage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/student/tickets/edit/:id" element={
+            <ProtectedRoute role="STUDENT">
+              <EditTicketPage />
+            </ProtectedRoute>
+          } />
 
           {/* LECTURER */}
-          <Route path="/lecturer" element={<ProtectedRoute role="LECTURER"><Lecturer /></ProtectedRoute>} />
-          <Route path="/lecturer/resources" element={<ProtectedRoute role="LECTURER"><ResourceBrowsePage /></ProtectedRoute>} />
-          <Route path="/lecturer/resources/view/:id" element={<ProtectedRoute role="LECTURER"><ViewResourcePage /></ProtectedRoute>} />
-          <Route path="/lecturer/bookings" element={<ProtectedRoute role="LECTURER"><MyBookings /></ProtectedRoute>} />
+          <Route path="/lecturer" element={
+            <ProtectedRoute role="LECTURER">
+              <Lecturer />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/lecturer/resources" element={
+            <ProtectedRoute role="LECTURER">
+              <ResourceBrowsePage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/lecturer/resources/view/:id" element={
+            <ProtectedRoute role="LECTURER">
+              <ViewResourcePage />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/lecturer/bookings" element={
+            <ProtectedRoute role="LECTURER">
+              <MyBookings />
+            </ProtectedRoute>
+          } />
 
           {/* TECHNICIAN */}
-          <Route path="/technician" element={<ProtectedRoute role="TECHNICIAN"><Technician /></ProtectedRoute>} />
-          <Route path="/technician/bookings" element={<ProtectedRoute role="TECHNICIAN"><TechnicianBookings /></ProtectedRoute>} />
-          <Route path="/technician/tickets" element={<ProtectedRoute role="TECHNICIAN"><TechnicianTicketPage /></ProtectedRoute>} />
+          <Route path="/technician" element={
+            <ProtectedRoute role="TECHNICIAN">
+              <Technician />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/technician/bookings" element={
+            <ProtectedRoute role="TECHNICIAN">
+              <TechnicianBookings />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/technician/tickets" element={
+            <ProtectedRoute role="TECHNICIAN">
+              <TechnicianTicketPage />
+            </ProtectedRoute>
+          } />
+
+          {/* ❌ FALLBACK */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+
         </Routes>
       </main>
     </>

@@ -152,25 +152,37 @@ export default function Admin() {
 
       <div className="admin-cards">
 
-        {/* Resource */}
-        <div
-          className="admin-card"
-          onClick={() => navigate("/admin/resources")}
-        >
-          <div className="admin-icon">📦</div>
-          <h2>Resource Management</h2>
-        </div>
+  {/* Resource */}
+  <div
+    className="admin-card"
+    onClick={() => navigate("/admin/resources")}
+  >
+    <div className="admin-icon">📦</div>
+    <h2>Resource Management</h2>
+    <p>Manage equipment & venues</p>
+  </div>
 
-        {/* User */}
-        <div
-          className="admin-card"
-          onClick={() => setShowForm(true)}
-        >
-          <div className="admin-icon">👥</div>
-          <h2>User Management</h2>
-        </div>
+  {/* User */}
+  <div
+    className="admin-card"
+    onClick={() => setShowForm(true)}
+  >
+    <div className="admin-icon">👥</div>
+    <h2>User Management</h2>
+    <p>Create lecturers & technicians</p>
+  </div>
 
-      </div>
+  {/* ✅ NEW TICKET CARD */}
+  <div
+    className="admin-card ticket-card"
+    onClick={() => navigate("/admin/tickets")}
+  >
+    <div className="admin-icon">🎫</div>
+    <h2>Ticket Handling</h2>
+    <p>Manage support requests & issues</p>
+  </div>
+
+</div>
 
       {/* MODAL */}
       {showForm && (

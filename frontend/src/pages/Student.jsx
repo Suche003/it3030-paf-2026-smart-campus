@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getMyBookings } from "../services/bookingService";
 import "../styles/StudentLecturerDashboard.css";
 
 export default function Student() {
+  const navigate = useNavigate();
+
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userName = user.name || localStorage.getItem("name") || "Student";
 
@@ -32,28 +34,52 @@ export default function Student() {
     }
   };
 
+  const logout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
+
   return (
     <div className="sl-dashboard-page">
-      <div className="sl-topbar">
+      <div className="student-header">
         <div>
+          <span className="student-brand">UniGo</span>
           <h1>Welcome, {userName}</h1>
-          <p>UniGo Student Dashboard</p>
+          <p>Student Dashboard</p>
         </div>
 
-        <Link to="/profile" className="sl-profile-chip">
-          <span className="sl-profile-icon">👤</span>
-          My Profile
-        </Link>
+        <div className="student-header-actions">
+          <Link to="/notifications" className="student-icon-btn">
+            🔔 Notifications
+          </Link>
+
+          <Link to="/profile" className="student-icon-btn profile">
+            👤 Profile
+          </Link>
+
+          <button onClick={logout} className="student-logout-btn">
+            Logout
+          </button>
+        </div>
       </div>
 
-      <div className="sl-hero-card">
-        <div>
-          <h2>Book Campus Resources</h2>
-          <p>Browse available venues and equipment, view details, and send booking requests.</p>
-        </div>
+      <div className="student-action-grid">
+        <Link to="/student/resources" className="student-action-card booking">
+          <div>
+            <span className="student-card-icon">🏫</span>
+            <h2>Book Campus Resources</h2>
+            <p>Browse available venues and equipment, view details, and send booking requests.</p>
+          </div>
+          <span className="student-card-arrow">→</span>
+        </Link>
 
-        <Link to="/student/resources" className="sl-main-btn">
-          Book Resource
+        <Link to="/student/tickets" className="student-action-card tickets">
+          <div>
+            <span className="student-card-icon">🎫</span>
+            <h2>Support & Ticketing</h2>
+            <p>Report issues, track requests, and communicate with technicians.</p>
+          </div>
+          <span className="student-card-arrow">→</span>
         </Link>
       </div>
 

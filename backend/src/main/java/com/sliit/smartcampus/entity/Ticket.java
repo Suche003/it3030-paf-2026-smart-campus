@@ -18,7 +18,6 @@ public class Ticket {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Student inputs
     @Column(nullable = false)
     private String title;
 
@@ -41,24 +40,23 @@ public class Ticket {
     @Column(nullable = false)
     private TicketPriority priority;
 
-    // Workflow
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TicketStatus status;
 
-    // Temporary student tracking (until login added)
     private Long studentId;
 
-    // Admin assignment
     private Long technicianId;
 
     private String technicianName;
 
-    // Resolution
     @Column(length = 2000)
     private String resolutionNote;
 
-    // Rejected reason
     @Column(length = 2000)
     private String rejectionReason;
+
+    private String image1Url;
+    private String image2Url;
+    private String image3Url;
 }

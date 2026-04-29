@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import "./Navbar.css";
 
 function Navbar() {
-
   const navigate = useNavigate();
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -24,53 +23,44 @@ function Navbar() {
     navigate("/");
   };
 
-  const goNotifications = () => {
-    navigate("/notifications");
-  };
-
-  const goProfile = () => {
-    navigate("/profile");
-  };
-
   return (
     <nav className="navbar">
-
-      <div className="nav-left">
-        <h2 className="logo">SmartCampus</h2>
+      <div className="nav-left" onClick={() => navigate("/")}>
+        <div className="logo-icon">U</div>
+        <h2 className="logo">UniGo</h2>
       </div>
 
       <div className="nav-links">
-
-        {/* 🔓 NOT LOGGED IN */}
         {!isLoggedIn && (
           <>
-            <Link to="/">Login</Link>
-            <Link to="/register">Register</Link>
+            <Link to="/" className={location.pathname === "/" ? "active-link" : ""}>
+              Login
+            </Link>
+            <Link
+              to="/register"
+              className={location.pathname === "/register" ? "active-link" : ""}
+            >
+              Register
+            </Link>
           </>
         )}
 
-        {/* 🔐 LOGGED IN */}
         {isLoggedIn && (
           <>
-            {/* 🔔 Notifications */}
-            <button onClick={goNotifications} className="notif-btn">
+            <button onClick={() => navigate("/notifications")} className="nav-btn secondary-btn">
               🔔 Notifications
             </button>
 
-            {/* 👤 PROFILE BUTTON (NEW) */}
-            <button onClick={goProfile} className="profile-btn">
+            <button onClick={() => navigate("/profile")} className="nav-btn secondary-btn">
               👤 Profile
             </button>
 
-            {/* 🚪 LOGOUT */}
-            <button onClick={logout} className="logout-btn">
+            <button onClick={logout} className="nav-btn logout-btn">
               Logout
             </button>
           </>
         )}
-
       </div>
-
     </nav>
   );
 }

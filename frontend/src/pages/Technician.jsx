@@ -1,45 +1,55 @@
-import { Link } from "react-router-dom"
-import "../styles/AdminResourceListPage.css"
+import { Link, useNavigate } from "react-router-dom";
+import "../styles/StudentLecturerDashboard.css";
 
 export default function Technician() {
-  const user = JSON.parse(localStorage.getItem("user") || "{}")
-  const userName = user.name || "Technician"
+  const navigate = useNavigate();
+
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userName = user.name || localStorage.getItem("name") || "Technician";
+
+  const logout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
 
   return (
-    <div className="page-container">
-
-      <div className="page-header">
+    <div className="sl-dashboard-page">
+      <div className="student-header">
         <div>
-          <h1 className="page-title">Welcome, {userName}</h1>
-          <p className="page-subtitle">
-            UniGo Technician Dashboard - Manage booking requests
-          </p>
+          <span className="student-brand">UniGo</span>
+          <h1>Welcome, {userName}</h1>
+          <p>Technician Dashboard - Manage assigned support tickets</p>
         </div>
-      </div>
 
-      <div className="resource-grid">
-
-        {/* BOOKING REQUESTS */}
-        <div className="resource-card">
-          <h2 className="resource-card-name">Booking Requests</h2>
-          <p>Approve or reject resource booking requests</p>
-
-          <Link to="/technician/bookings" className="primary-link-btn">
-            View Requests
+        <div className="student-header-actions">
+          <Link to="/notifications" className="student-icon-btn">
+            🔔 Notifications
           </Link>
-        </div>
 
-        {/* FUTURE FEATURE */}
-        <div className="resource-card">
-          <h2 className="resource-card-name">Tickets</h2>
-          <p>Manage support tickets (Coming soon)</p>
+          <Link to="/profile" className="student-icon-btn profile">
+            👤 Profile
+          </Link>
 
-          <button className="primary-link-btn" disabled>
-            Coming Soon
+          <button onClick={logout} className="student-logout-btn">
+            Logout
           </button>
         </div>
+      </div>
 
+      <div className="student-action-grid">
+        <Link to="/technician/tickets" className="student-action-card tickets">
+          <div>
+            <span className="student-card-icon">🎫</span>
+            <h2>Assigned Tickets</h2>
+            <p>
+              View tickets assigned by admin, update progress, submit resolutions,
+              and close completed work.
+            </p>
+          </div>
+
+          <span className="student-card-arrow">→</span>
+        </Link>
       </div>
     </div>
-  )
+  );
 }

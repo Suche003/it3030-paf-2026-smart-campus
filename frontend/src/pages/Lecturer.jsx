@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { getMyBookings } from "../services/bookingService";
 import "../styles/StudentLecturerDashboard.css";
 
 export default function Lecturer() {
+  const navigate = useNavigate();
+
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userName = user.name || localStorage.getItem("name") || "Lecturer";
 
@@ -32,28 +34,52 @@ export default function Lecturer() {
     }
   };
 
+  const logout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
+
   return (
     <div className="sl-dashboard-page">
-      <div className="sl-topbar">
+      <div className="student-header">
         <div>
+          <span className="student-brand">UniGo</span>
           <h1>Welcome, {userName}</h1>
-          <p>UniGo Lecturer Dashboard</p>
+          <p>Lecturer Dashboard</p>
         </div>
 
-        <Link to="/profile" className="sl-profile-chip">
-          <span className="sl-profile-icon">👤</span>
-          My Profile
-        </Link>
+        <div className="student-header-actions">
+          <Link to="/notifications" className="student-icon-btn">
+            🔔 Notifications
+          </Link>
+
+          <Link to="/profile" className="student-icon-btn profile">
+            👤 Profile
+          </Link>
+
+          <button onClick={logout} className="student-logout-btn">
+            Logout
+          </button>
+        </div>
       </div>
 
-      <div className="sl-hero-card">
-        <div>
-          <h2>Book Teaching Resources</h2>
-          <p>Browse lecture halls, venues, projectors, speakers, and other academic equipment.</p>
-        </div>
+      <div className="student-action-grid">
+        <Link to="/lecturer/resources" className="student-action-card booking">
+          <div>
+            <span className="student-card-icon">🏫</span>
+            <h2>Book Teaching Resources</h2>
+            <p>Browse lecture halls, venues, projectors, speakers, and academic equipment.</p>
+          </div>
+          <span className="student-card-arrow">→</span>
+        </Link>
 
-        <Link to="/lecturer/resources" className="sl-main-btn">
-          Book Resource
+        <Link to="/lecturer/bookings" className="student-action-card tickets">
+          <div>
+            <span className="student-card-icon">📋</span>
+            <h2>My Booking Requests</h2>
+            <p>Track approved, pending, and rejected resource booking requests.</p>
+          </div>
+          <span className="student-card-arrow">→</span>
         </Link>
       </div>
 

@@ -23,8 +23,8 @@ export default function StudentTicketListPage() {
   const [deletingTicketId, setDeletingTicketId] = useState(null);
   const [submittingCommentId, setSubmittingCommentId] = useState(null);
 
-  const studentId = 1;
-
+  const studentId = localStorage.getItem("userId") || 1;
+  
   const getStatusBadgeClass = (status) => {
     switch (status) {
       case "OPEN": return "badge-open";
